@@ -1,5 +1,5 @@
 # ---- 開発用ステージ (development) ----
-FROM node:18-alpine AS development
+FROM node:22-alpine AS development
 
 # アプリケーションの作業ディレクトリを設定
 WORKDIR /app
@@ -28,7 +28,7 @@ CMD ["npm", "run", "dev"]
 # CMD ["yarn", "dev"]
 
 # ---- 本番用ステージ (production) ----
-FROM node:18-alpine AS production
+FROM node:22-alpine AS production
 
 WORKDIR /app
 
