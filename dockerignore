@@ -1,0 +1,26 @@
+# Git 関連ファイル
+.git
+.gitignore
+
+# Node.js 関連
+node_modules
+
+# Next.js のビルドキャッシュ (開発時)
+.next
+
+# Docker 関連ファイル (イメージ内には不要)
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# OS 固有ファイル
+.DS_Store
+Thumbs.db
+
+# ログファイル
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# README など (本番イメージに含めない場合)
+README.md
