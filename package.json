@@ -9,7 +9,10 @@
     "start": "next start",
     "lint": "next lint",
     "import-data": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/import-data.ts",
-    "fix-lineage-data": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/fix-lineage-data.ts"
+    "fix-lineage-data": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/fix-lineage-data.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "docker:setup": "chmod +x ./scripts/docker-entrypoint.sh && ./scripts/docker-entrypoint.sh"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",

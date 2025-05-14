@@ -1,5 +1,3 @@
-version: '3.8' # Docker Compose のファイルフォーマットバージョン
-
 services:
   # Next.js アプリケーションサービス
   app:
@@ -13,18 +11,20 @@ services:
       - "3000:3000" # ホストのポート 3000 をコンテナのポート 3000 にマッピング
     volumes:
       # ホストのカレントディレクトリのソースコードをコンテナの /app にマウント
-      # これにより、ローカルでのコード変更が即座にコンテナに反映され、ホットリロードが機能します。
       - .:/app
+      # prisma関連のデータは保持するように設定
+      - ./prisma:/app/prisma
       # node_modules はホストと共有せず、コンテナ内でインストールされたものを使用するための設定
-      # これにより、OS間の差異による問題を回避できます。
       - /app/node_modules
       # .next ディレクトリもコンテナ内で生成されるものを利用
       - /app/.next
     environment:
       - NODE_ENV=development # 環境変数を設定 (Next.js が開発モードで動作)
-      # ホットリロードがうまく機能しない場合、以下の環境変数を試すことがあります
-      # - WATCHPACK_POLLING=true
-      # - CHOKIDAR_USEPOLLING=true
+      - DATABASE_URL=file:/app/prisma/dev.db # Prisma用のデータベースURL
     # コンテナを起動し続けるための設定 (ターミナルをアタッチしたままにする)
     tty: true
     stdin_open: true # 標準入力を開いたままにする
+    # エントリポイントを指定
+    entrypoint: ["/bin/sh", "-c"]
+    # エントリポイントスクリプトを指定
+    command: ["chmod +x ./scripts/docker-entrypoint.sh && ./scripts/docker-entrypoint.sh"]
