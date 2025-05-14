@@ -1,26 +1,12 @@
-<<<<<<< HEAD
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-=======
-@import "tailwindcss";
->>>>>>> 1830ad50d286bcfa2c180a01d3eaa136656af8e5
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
 
-<<<<<<< HEAD
-=======
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
->>>>>>> 1830ad50d286bcfa2c180a01d3eaa136656af8e5
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -28,11 +14,10 @@
   }
 }
 
-<<<<<<< HEAD
 @layer base {
-body {
+  body {
     @apply bg-background text-foreground;
-  font-family: Arial, Helvetica, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
   }
 }
 
@@ -48,10 +33,4 @@ body {
 .js-plotly-plot .plotly .annotation-text {
   fill: #171717 !important;
   color: #171717 !important;
-=======
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
->>>>>>> 1830ad50d286bcfa2c180a01d3eaa136656af8e5
 }
