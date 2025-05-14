@@ -24,6 +24,12 @@ EXPOSE 3000
 
 # 開発サーバーを起動するコマンド
 CMD ["npm", "run", "dev"]
+RUN prisma init
+RUN npm install csv-parser
+RUN npm install ts-node typescript @types/node
+RUN npx prisma db push
+RUN npx ts-node scripts/import-data.ts
+RUN npx prisma generate
 # yarn を使用する場合
 # CMD ["yarn", "dev"]
 

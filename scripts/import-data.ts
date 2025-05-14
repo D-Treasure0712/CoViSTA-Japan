@@ -3,10 +3,9 @@ import { createReadStream } from 'fs';
 import { readdir } from 'fs/promises';
 import { join } from 'path';
 import csv from 'csv-parser';
+import fs from 'fs';
 
 interface CsvRow {
-  date: string;
-  week: string;
   [key: string]: string;
 }
 
@@ -63,104 +62,177 @@ const prefectureMap: { [key: string]: string } = {
   'Okinawa': '沖縄県'
 };
 
-function parseDate(yearWeek: string): Date {
-  const [year, week] = yearWeek.split('/').map(Number);
-  const date = new Date(year, 0, 1);
-  date.setDate(date.getDate() + (week - 1) * 7);
-  return date;
+function parseDate(dateStr: string): Date {
+  try {
+    // YYYY/WW形式の日付を解析
+    if (dateStr.includes('/')) {
+      const [year, week] = dateStr.split('/').map(Number);
+      const date = new Date(year, 0, 1);
+      date.setDate(date.getDate() + (week - 1) * 7);
+      return date;
+    }
+    // 標準的な日付形式
+    return new Date(dateStr);
+  } catch (error) {
+    console.error(`日付の解析に失敗しました: ${dateStr}`, error);
+    return new Date();
+  }
 }
 
 async function importData() {
   try {
-    // データディレクトリのパス
-    const dataDir = join(process.cwd(), 'nakano_src', 'visualize_tool');
+    console.log('データのインポートを開始します...');
+
+    // データベースをリセット
+    await prisma.covidData.deleteMany();
+    await prisma.prefecture.deleteMany();
     
-    // 都道府県データの読み込みと登録
+    // データディレクトリのパス
+    const baseDir = join(process.cwd(), 'nakano_src', 'visualize_tool');
+    const waveDirs = ['6wave', '7wave', '8wave', '6-8wave'];
+    
+    // 都道府県データの登録
     const prefectures = new Map<string, number>();
-    const prefectureFiles = (await readdir(dataDir))
-      .filter(file => file.endsWith('.csv'))
-      .map(file => file.replace('.csv', ''));
-
-    for (const prefecture of prefectureFiles) {
-      const createdPrefecture = await prisma.prefecture.create({
-        data: { name: prefecture },
-      });
-      prefectures.set(prefecture, createdPrefecture.id);
-    }
-
-    // 系統データの読み込みと登録
-    const lineages = new Map<string, number>();
-    const processedLineages = new Set<string>();
-
-    // すべてのCSVファイルを処理して系統を収集
-    for (const prefecture of prefectureFiles) {
-      const filePath = join(dataDir, `${prefecture}.csv`);
-      const rows: CsvRow[] = [];
+    const prefectureSet = new Set<string>();
+    
+    console.log('CSVファイルを探索中...');
+    
+    // 各波のディレクトリからCSVファイルを収集
+    for (const waveDir of waveDirs) {
+      const wavePath = join(baseDir, waveDir);
       
-      await new Promise((resolve) => {
-        createReadStream(filePath)
-          .pipe(csv())
-          .on('data', (row: CsvRow) => {
-            rows.push(row);
-            Object.keys(row).forEach(key => {
-              if (key !== 'date' && key !== 'week' && !processedLineages.has(key)) {
-                processedLineages.add(key);
-              }
-            });
-          })
-          .on('end', resolve);
-      });
-    }
-
-    // 系統を登録
-    for (const lineage of processedLineages) {
-      const createdLineage = await prisma.lineage.create({
-        data: { name: lineage },
-      });
-      lineages.set(lineage, createdLineage.id);
-    }
-
-    // データの読み込みと登録
-    for (const prefecture of prefectureFiles) {
-      const filePath = join(dataDir, `${prefecture}.csv`);
-      const rows: CsvRow[] = [];
+      if (!fs.existsSync(wavePath)) {
+        console.log(`ディレクトリが存在しません: ${wavePath}`);
+        continue;
+      }
       
-      await new Promise((resolve) => {
-        createReadStream(filePath)
-          .pipe(csv())
-          .on('data', (row: CsvRow) => rows.push(row))
-          .on('end', resolve);
-      });
-
-      for (const row of rows) {
-        const date = new Date(row.date);
-        const week = parseInt(row.week);
-        const prefectureId = prefectures.get(prefecture)!;
-
-        // 各系統のデータを処理
-        for (const [lineageName, lineageId] of lineages) {
-          if (lineageName !== 'date' && lineageName !== 'week') {
-            const count = parseInt(row[lineageName]) || 0;
-            const ratio = parseFloat(row[lineageName]) / 100 || 0;
-
-            await prisma.covidData.create({
-              data: {
-                date,
-                count,
-                ratio,
-                prefectureId,
-                lineageId,
-                wave: week >= 6 && week <= 8 ? week : 0,
-              },
-            });
+      const files = await readdir(wavePath);
+      const csvFiles = files.filter(file => file.endsWith('.csv'));
+      console.log(`${waveDir}ディレクトリ内のCSVファイル数: ${csvFiles.length}`);
+      
+      // 都道府県名の抽出
+      for (const file of csvFiles) {
+        const match = file.match(/Rank_lineage_([^_]+)_\d+wave\.csv/);
+        if (match && match[1]) {
+          const prefecture = match[1];
+          if (prefecture !== 'all' && prefecture !== 'easy' && prefecture !== 'major') {
+            prefectureSet.add(prefecture);
           }
         }
       }
     }
+    
+    console.log(`検出された都道府県数: ${prefectureSet.size}`);
+    
+    // 都道府県の登録
+    for (const prefecture of prefectureSet) {
+      const createdPrefecture = await prisma.prefecture.create({
+        data: { name: prefecture },
+      });
+      prefectures.set(prefecture, createdPrefecture.id);
+      console.log(`都道府県を登録: ${prefecture} (ID: ${createdPrefecture.id})`);
+    }
+    
+    // すでに系統データはfix-lineage-data.tsで作成済みなので、
+    // ここでは既存の系統データを取得するだけ
+    const lineages = new Map<string, number>();
+    const existingLineages = await prisma.lineage.findMany();
+    
+    for (const lineage of existingLineages) {
+      lineages.set(lineage.name, lineage.id);
+    }
+    
+    console.log(`データベースから取得した系統数: ${lineages.size}`);
+    
+    // 各波のデータを処理
+    for (const waveDir of waveDirs) {
+      const wavePath = join(baseDir, waveDir);
+      const waveNum = waveDir === '6-8wave' ? 0 : parseInt(waveDir.replace('wave', ''));
+      
+      if (!fs.existsSync(wavePath)) {
+        continue;
+      }
+      
+      const files = await readdir(wavePath);
+      const csvFiles = files.filter(file => file.endsWith('.csv'));
+      
+      for (const file of csvFiles) {
+        const match = file.match(/Rank_lineage_([^_]+)_\d+wave\.csv/);
+        if (!match || !match[1]) continue;
+        
+        const prefecture = match[1];
+        if (prefecture === 'all' || prefecture === 'easy' || prefecture === 'major') continue;
+        
+        const prefectureId = prefectures.get(prefecture);
+        if (!prefectureId) {
+          console.log(`都道府県IDが見つかりません: ${prefecture}`);
+          continue;
+        }
+        
+        const filePath = join(wavePath, file);
+        
+        // ファイルを直接読み込み
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        const lines = fileContent.split('\n');
+        
+        // ヘッダー行を解析して日付を取得
+        const header = lines[0].trim();
+        const dateKeys = header.split(',').slice(1); // 最初の列（空）をスキップ
+        
+        // データ行を処理
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue; // 空行はスキップ
+          
+          const values = line.split(',');
+          if (values.length <= 1) continue; // データが不足している行はスキップ
+          
+          // 最初の値が系統名
+          const lineageName = values[0];
+          if (!lineageName) continue;
+          
+          const lineageId = lineages.get(lineageName);
+          if (!lineageId) {
+            console.log(`系統IDが見つかりません: ${lineageName}`);
+            continue;
+          }
+          
+          // 残りの値は各日付のデータ
+          for (let j = 1; j < values.length && j - 1 < dateKeys.length; j++) {
+            const dateKey = dateKeys[j - 1];
+            const value = values[j];
+            
+            if (!dateKey || !value) continue;
+            
+            const date = parseDate(dateKey);
+            const count = parseInt(value) || 0;
+            const ratio = count / 100; // 割合に変換（%から小数へ）
+            
+            try {
+              await prisma.covidData.create({
+                data: {
+                  date,
+                  count,
+                  ratio,
+                  prefectureId,
+                  lineageId,
+                  wave: waveNum,
+                },
+              });
+            } catch (error) {
+              console.error(`データの登録に失敗しました: ${prefecture}, ${lineageName}, ${dateKey}`, error);
+            }
+          }
+        }
+        
+        console.log(`ファイルを処理しました: ${file}`);
+      }
+    }
 
-    console.log('Data import completed successfully');
+    const dataCount = await prisma.covidData.count();
+    console.log(`データのインポートが完了しました。登録データ数: ${dataCount}`);
   } catch (error) {
-    console.error('Error importing data:', error);
+    console.error('データのインポート中にエラーが発生しました:', error);
     throw error;
   } finally {
     await prisma.$disconnect();

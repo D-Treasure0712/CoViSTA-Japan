@@ -15,22 +15,32 @@
 }
 
 @layer base {
-  body {
+body {
     @apply bg-background text-foreground;
-    font-family: Arial, Helvetica, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
   }
 }
 
-/* プロットの背景色を白に設定 */
-.js-plotly-plot .plotly .main-svg {
-  background: #ffffff !important;
+/* Plotly.jsの基本スタイル - 最小限にする */
+.js-plotly-plot {
+  background-color: #ffffff !important;
 }
 
-/* プロットの文字色を黒に設定 */
-.js-plotly-plot .plotly .xtick text,
-.js-plotly-plot .plotly .ytick text,
-.js-plotly-plot .plotly .gtitle,
-.js-plotly-plot .plotly .annotation-text {
-  fill: #171717 !important;
-  color: #171717 !important;
+.js-plotly-plot .svg-container {
+  position: relative;
+}
+
+.js-plotly-plot .main-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: auto;
+  background-color: transparent !important;
+}
+
+/* モードバーのスタイル */
+.js-plotly-plot .modebar {
+  position: absolute;
+  top: 2px;
+  right: 2px;
 }

@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "import-data": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/import-data.ts"
+    "import-data": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/import-data.ts",
+    "fix-lineage-data": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/fix-lineage-data.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",

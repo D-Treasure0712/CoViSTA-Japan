@@ -44,7 +44,7 @@ export default function Home() {
             各都道府県における主要系統の推移のまとめ
           </Link>
         </section>
-      </div>
+        </div>
     </div>
   );
 }
