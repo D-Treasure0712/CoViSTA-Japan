@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+@layer base {
+body {
+    @apply bg-background text-foreground;
+  font-family: Arial, Helvetica, sans-serif;
+  }
+}
+
+/* プロットの背景色を白に設定 */
+.js-plotly-plot .plotly .main-svg {
+  background: #ffffff !important;
+}
+
+/* プロットの文字色を黒に設定 */
+.js-plotly-plot .plotly .xtick text,
+.js-plotly-plot .plotly .ytick text,
+.js-plotly-plot .plotly .gtitle,
+.js-plotly-plot .plotly .annotation-text {
+  fill: #171717 !important;
+  color: #171717 !important;
+}

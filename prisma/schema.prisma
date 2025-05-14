@@ -1,0 +1,42 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Prefecture {
+  id        Int         @id @default(autoincrement())
+  name      String      @unique
+  covidData CovidData[]
+}
+
+model Lineage {
+  id        Int         @id @default(autoincrement())
+  name      String      @unique
+  covidData CovidData[]
+}
+
+model CovidData {
+  id           Int        @id @default(autoincrement())
+  date         DateTime
+  count        Int
+  ratio        Float
+  prefecture   Prefecture @relation(fields: [prefectureId], references: [id])
+  prefectureId Int
+  lineage      Lineage    @relation(fields: [lineageId], references: [id])
+  lineageId    Int
+  wave         Int
+
+  @@index([date])
+  @@index([prefectureId])
+  @@index([lineageId])
+}
