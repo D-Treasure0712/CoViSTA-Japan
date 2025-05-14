@@ -2,7 +2,7 @@
 FROM node:22-slim AS development
 
 # 必要なツールをインストール
-RUN apt-get update && apt-get install -y curl openssl sqlite3
+RUN apt-get update && apt-get install -y curl openssl sqlite3 dos2unix && rm -rf /var/lib/apt/lists/*
 
 # アプリケーションの作業ディレクトリを設定
 WORKDIR /app
@@ -24,6 +24,8 @@ COPY . .
 
 # スクリプトに実行権限を付与
 RUN chmod +x ./scripts/docker-entrypoint.sh
+RUN dos2unix ./scripts/docker-entrypoint.sh
+RUN ls -l /app/scripts
 
 # Prisma設定とデータベースの初期化
 ENV DATABASE_URL="file:/app/prisma/dev.db"
@@ -38,7 +40,7 @@ CMD ["npm", "run", "dev"]
 FROM node:22-slim AS production
 
 # 必要なツールをインストール
-RUN apt-get update && apt-get install -y openssl sqlite3
+RUN apt-get update && apt-get install -y openssl sqlite3 dos2unix && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -72,3 +74,6 @@ ENV NODE_ENV production
 
 # 本番サーバーを起動するコマンド
 CMD ["npm", "start"]
+
+# エントリーポイントの設定
+ENTRYPOINT ["/bin/sh", "-c", "chmod +x /app/scripts/docker-entrypoint.sh && /app/scripts/docker-entrypoint.sh"]

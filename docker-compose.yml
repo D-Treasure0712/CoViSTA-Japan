@@ -10,13 +10,9 @@ services:
     ports:
       - "3000:3000" # ホストのポート 3000 をコンテナのポート 3000 にマッピング
     volumes:
-      # ホストのカレントディレクトリのソースコードをコンテナの /app にマウント
-      - .:/app
-      # prisma関連のデータは保持するように設定
-      - ./prisma:/app/prisma
-      # node_modules はホストと共有せず、コンテナ内でインストールされたものを使用するための設定
+      # 開発時のみ必要なボリュームマウント
+      - ./prisma:/app/prisma:delegated
       - /app/node_modules
-      # .next ディレクトリもコンテナ内で生成されるものを利用
       - /app/.next
     environment:
       - NODE_ENV=development # 環境変数を設定 (Next.js が開発モードで動作)
