@@ -12,74 +12,7 @@ export default function PlotComponent({ data, layout }: PlotComponentProps) {
   const [mounted, setMounted] = useState(false);
   const [Plot, setPlot] = useState<any>(null);
   const [showDebug, setShowDebug] = useState(false);
-  const [useTestData, setUseTestData] = useState(false); // テストデータの使用フラグをfalseに変更
   const [dataError, setDataError] = useState<string | null>(null);
-
-  // テストデータの作成
-  const testDataSets = useMemo(() => {
-    // 元のデータの型を検査してみる
-    const hasHeatmap = Array.isArray(data) && data.length > 0 && data.some((d: any) => d.type === 'heatmap');
-    const hasScatter = Array.isArray(data) && data.length > 0 && data.some((d: any) => d.type === 'scatter');
-    
-    if (hasHeatmap) {
-      // ヒートマップの場合のテストデータ
-      return [{
-        z: [
-          [1, 20, 30, 50, 1], 
-          [20, 1, 60, 80, 30], 
-          [30, 60, 1, 5, 20]
-        ],
-        x: ['A', 'B', 'C', 'D', 'E'],
-        y: ['第1週', '第2週', '第3週'],
-        type: 'heatmap' as const,
-        colorscale: 'Viridis',
-        showscale: true
-      }];
-    } else if (hasScatter) {
-      // 散布図の場合のテストデータ
-      // 複数の系統を模倣する
-      return [
-        {
-          x: ['2023/1週', '2023/2週', '2023/3週', '2023/4週', '2023/5週'],
-          y: [1, 2, 3, 2, 1],
-          type: 'scatter' as const,
-          mode: 'lines+markers' as const,
-          name: 'テスト系統1',
-          line: { color: '#1f77b4', width: 2 },
-          marker: { color: '#1f77b4', size: 8 }
-        },
-        {
-          x: ['2023/1週', '2023/2週', '2023/3週', '2023/4週', '2023/5週'],
-          y: [2, 3, 4, 3, 2],
-          type: 'scatter' as const,
-          mode: 'lines+markers' as const,
-          name: 'テスト系統2',
-          line: { color: '#ff7f0e', width: 2 },
-          marker: { color: '#ff7f0e', size: 8 }
-        },
-        {
-          x: ['2023/1週', '2023/2週', '2023/3週', '2023/4週', '2023/5週'],
-          y: [3, 4, 5, 4, 3],
-          type: 'scatter' as const,
-          mode: 'lines+markers' as const,
-          name: 'テスト系統3',
-          line: { color: '#2ca02c', width: 2 },
-          marker: { color: '#2ca02c', size: 8 }
-        }
-      ];
-    } else {
-      // デフォルトのテストデータ
-      return [{
-        x: [1, 2, 3, 4, 5],
-        y: [10, 15, 13, 17, 20],
-        type: 'scatter' as const,
-        mode: 'lines+markers' as const,
-        name: 'テストデータ',
-        line: { color: 'red', width: 3 },
-        marker: { color: 'red', size: 10 }
-      }];
-    }
-  }, [data]);
 
   // データの処理
   const enhancedData = useMemo(() => {
@@ -203,7 +136,6 @@ export default function PlotComponent({ data, layout }: PlotComponentProps) {
     console.log('===== PLOTLY DEBUG INFO =====');
     console.log('Original Data:', JSON.stringify(data, null, 2));
     console.log('Enhanced Data:', JSON.stringify(enhancedData, null, 2));
-    console.log('Test Data:', JSON.stringify(testDataSets, null, 2));
     console.log('Layout:', JSON.stringify(layout, null, 2));
     console.log('===== END DEBUG INFO =====');
 
@@ -212,7 +144,7 @@ export default function PlotComponent({ data, layout }: PlotComponentProps) {
       setPlot(() => module.default);
       setMounted(true);
     });
-  }, [data, enhancedData, layout, testDataSets]);
+  }, [data, enhancedData, layout]);
 
   if (!mounted || !Plot) {
     return (
@@ -319,9 +251,7 @@ export default function PlotComponent({ data, layout }: PlotComponentProps) {
     })) || [],
   };
 
-  // 表示するデータの選択
-  const displayData = useTestData ? testDataSets : enhancedData;
-  const isDataEmpty = !Array.isArray(displayData) || displayData.length === 0;
+  const isDataEmpty = !Array.isArray(enhancedData) || enhancedData.length === 0;
 
   return (
     <div style={{
@@ -344,24 +274,10 @@ export default function PlotComponent({ data, layout }: PlotComponentProps) {
           gap: '10px'
         }}>
           <p style={{ color: '#000000', fontWeight: 'bold' }}>データがありません</p>
-          <button
-            onClick={() => setUseTestData(true)}
-            style={{
-              padding: '5px 10px',
-              background: '#e0f7fa',
-              border: '1px solid #000',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              color: '#000000',
-              fontWeight: '500'
-            }}
-          >
-            テストデータを使用
-          </button>
         </div>
       ) : (
         <Plot
-          data={displayData as any}
+          data={enhancedData as any}
           layout={enhancedLayout as any}
           style={{
             width: '100%',
@@ -383,22 +299,6 @@ export default function PlotComponent({ data, layout }: PlotComponentProps) {
         flexDirection: 'column',
         gap: '5px'
       }}>
-        <button 
-          onClick={() => setUseTestData(!useTestData)}
-          style={{
-            padding: '5px 10px',
-            background: useTestData ? '#e0f7fa' : '#f0f0f0',
-            border: '1px solid #000',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '12px',
-            color: '#000000',
-            fontWeight: '500'
-          }}
-        >
-          {useTestData ? 'テストデータ使用中' : '実データを使用'}
-        </button>
-        
         <button 
           onClick={() => setShowDebug(!showDebug)}
           style={{
@@ -449,13 +349,13 @@ export default function PlotComponent({ data, layout }: PlotComponentProps) {
           color: '#000000'
         }}>
           <h4 style={{ color: '#000000', fontWeight: 'bold', marginBottom: '8px' }}>データ情報:</h4>
-          <p style={{ color: '#000000', margin: '4px 0' }}>データセット数: {displayData.length}</p>
+          <p style={{ color: '#000000', margin: '4px 0' }}>データセット数: {enhancedData.length}</p>
           {!isDataEmpty && (
             <>
-              <p style={{ color: '#000000', margin: '4px 0' }}>データタイプ: {(displayData[0] as any)?.type || '不明'}</p>
+              <p style={{ color: '#000000', margin: '4px 0' }}>データタイプ: {(enhancedData[0] as any)?.type || '不明'}</p>
               <div style={{ marginTop: '10px' }}>
                 <button
-                  onClick={() => console.log('Debug Data:', displayData)}
+                  onClick={() => console.log('Debug Data:', enhancedData)}
                   style={{
                     padding: '3px 6px',
                     fontSize: '9px',
@@ -471,7 +371,7 @@ export default function PlotComponent({ data, layout }: PlotComponentProps) {
                 </button>
               </div>
               
-              {displayData.map((trace: any, i) => (
+              {enhancedData.map((trace: any, i) => (
                 <div key={i}>
                   <p style={{ color: '#000000', fontWeight: 'bold', marginTop: '8px' }}>データセット {i+1}: {trace.name || '名前なし'}</p>
                   <p style={{ color: '#000000' }}>タイプ: {trace.type || '不明'}</p>

@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { Layout, Data } from 'plotly.js';
 import PlotComponent from '../../components/PlotComponent';
+import { useCovidData } from '@/hooks/useCovidData';
 
 interface Prefecture {
   id: number;
@@ -24,38 +25,11 @@ interface CovidDataWithRelations {
   lineage: Lineage;
 }
 
-async function getData(wave: string) {
-  try {
-    const waveNumber = wave === '6-8' ? [6, 7, 8] : [parseInt(wave)];
-    
-    // 日付形式のlineage.nameでも取得できるように修正
-    const data = await prisma.covidData.findMany({
-      where: {
-        wave: {
-          in: waveNumber
-        }
-      },
-      include: {
-        prefecture: true,
-        lineage: true
-      },
-      orderBy: [
-        { date: 'asc' }
-      ],
-      take: 10000 // データ量を制限
-    });
-
-    console.log(`Wave ${wave} - データ取得数: ${data.length}`);
-    return data;
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    return [];
-  }
-}
+const { fetchWaveData } = useCovidData();
 
 export default async function HeatmapPage({ params }: { params: { wave: string } }) {
   const wave = await Promise.resolve(params.wave);
-  const data = await getData(wave);
+  const data = await fetchWaveData(wave);
   
   // データが空の場合はエラーメッセージを表示
   if (data.length === 0) {
