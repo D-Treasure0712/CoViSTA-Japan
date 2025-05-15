@@ -71,25 +71,39 @@ const prefectureMap: { [key: string]: string } = {
 };
 
 /**
- * 日付文字列をDate型に変換する関数
+ * 日付文字列を処理する関数
+ * YYYY/WW形式（年/週）の場合はそのまま文字列を返し、その他の形式の場合は年/週形式に変換
  * 
  * @param dateStr - 解析する日付文字列 (YYYY/WW形式または標準日付形式)
- * @returns 変換されたDateオブジェクト
+ * @returns 年/週形式の文字列 (例: "2022/01")
  */
-function parseDate(dateStr: string): Date {
+function parseDate(dateStr: string): string {
   try {
-    // YYYY/WW形式（年/週）の日付を解析
+    // すでにYYYY/WW形式（年/週）の日付ならそのまま返す
     if (dateStr.includes('/')) {
-      const [year, week] = dateStr.split('/').map(Number);
-      const date = new Date(year, 0, 1); // その年の1月1日
-      date.setDate(date.getDate() + (week - 1) * 7); // 週数に応じて日を加算
-      return date;
+      // 週番号が1桁の場合は2桁に整形 (例: 2022/1 → 2022/01)
+      const [year, week] = dateStr.split('/');
+      const formattedWeek = week.padStart(2, '0');
+      return `${year}/${formattedWeek}`;
     }
-    // 標準的な日付形式（ISO 8601など）として解析
-    return new Date(dateStr);
+    
+    // 標準的な日付形式（ISO 8601など）から年/週形式に変換
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+      throw new Error(`Invalid date: ${dateStr}`);
+    }
+    
+    const year = date.getFullYear();
+    const startOfYear = new Date(year, 0, 1);
+    const dayOfYear = Math.floor((date.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000));
+    const weekNumber = Math.floor(dayOfYear / 7) + 1;
+    
+    // 週番号を2桁の文字列に整形
+    const formattedWeek = String(weekNumber).padStart(2, '0');
+    return `${year}/${formattedWeek}`;
   } catch (error) {
     console.error(`日付の解析に失敗しました: ${dateStr}`, error);
-    return new Date(); // エラーが発生した場合は現在の日付を返す
+    return dateStr; // エラーが発生した場合は元の文字列を返す
   }
 }
 
@@ -233,8 +247,8 @@ async function importData() {
             
             if (!dateKey || !value) continue;
             
-            // 日付文字列をDate型に変換
-            const date = parseDate(dateKey);
+            // 日付文字列を処理して年/週形式に変換
+            const formattedDate = parseDate(dateKey);
             // 検出数を整数に変換（値が不正な場合は0）
             const count = parseInt(value) || 0;
             // パーセントから小数の割合に変換（例: 75% → 0.75）
@@ -244,7 +258,7 @@ async function importData() {
               // 変換したデータをデータベースに保存
               await prisma.covidData.create({
                 data: {
-                  date,       // 検出日
+                  date: formattedDate,       // 年/週形式の日付文字列
                   count,      // カウント値（パーセント）
                   ratio,      // 割合（0-1の小数）
                   prefectureId, // 都道府県のID

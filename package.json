@@ -4,12 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbo",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "import-data": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/import-data.ts",
     "fix-lineage-data": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/fix-lineage-data.ts",
+    "update-year-week": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/update-year-week.ts",
+    "migrate-date-data": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/migrate-date-data.ts",
+    "simple-migration": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/simple-migration.ts",
+    "check-date-format": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/check-date-format.ts",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "docker:setup": "chmod +x ./scripts/docker-entrypoint.sh && ./scripts/docker-entrypoint.sh"
