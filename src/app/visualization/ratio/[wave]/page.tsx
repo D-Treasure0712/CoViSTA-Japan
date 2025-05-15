@@ -1,6 +1,3 @@
-import { Layout } from 'plotly.js';
-import PlotComponent from '../../components/PlotComponent';
-
 // クライアントコンポーネントのインポート
 import ClientPage from './client';
 

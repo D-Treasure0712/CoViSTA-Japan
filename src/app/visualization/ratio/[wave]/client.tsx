@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Layout, Data } from 'plotly.js';
+import { Data } from 'plotly.js';
 import PlotComponent from '../../components/PlotComponent';
+import colors from '@/theme/rateColor';
+import layout from '@/theme/rateLayout';
 
 interface PrefectureDataItem {
   prefecture: string;
@@ -18,106 +20,6 @@ interface ClientPageProps {
 
 export default function ClientPage({ wave, prefectures, prefectureData, dataCount }: ClientPageProps) {
   const [selectedPrefecture, setSelectedPrefecture] = useState<string>(prefectures.length > 0 ? prefectures[0] : '');
-
-  // 系統ごとの色マップを定義
-  const colors = [
-    '#1f77b4', // 青
-    '#ff7f0e', // オレンジ
-    '#2ca02c', // 緑
-    '#d62728', // 赤
-    '#9467bd', // 紫
-    '#8c564b', // 茶色
-    '#e377c2', // ピンク
-    '#7f7f7f', // グレー
-    '#bcbd22', // 黄緑
-    '#17becf', // 水色
-    '#aec7e8', // 薄い青
-    '#ffbb78', // 薄いオレンジ
-    '#98df8a', // 薄い緑
-    '#ff9896', // 薄い赤
-    '#c5b0d5', // 薄い紫
-    '#c49c94', // 薄い茶色
-    '#f7b6d2', // 薄いピンク
-    '#c7c7c7', // 薄いグレー
-    '#dbdb8d', // 薄い黄緑
-    '#9edae5'  // 薄い水色
-  ];
-
-  const layout: Partial<Layout> = {
-    height: 600,
-    margin: {
-      t: 50,
-      r: 50,
-      b: 100,
-      l: 60
-    },
-    font: {
-      family: 'Arial, sans-serif',
-      size: 14,
-      color: '#000000'
-    },
-    yaxis: {
-      tickformat: ',.0%',
-      range: [0, 1],
-      title: {
-        text: '系統の割合（各週100%で正規化）',
-        font: {
-          size: 16,
-          color: '#000000'
-        }
-      },
-      tickfont: {
-        color: '#000000',
-        size: 12
-      },
-      gridcolor: '#e0e0e0',
-      fixedrange: true,
-      tickmode: 'linear',
-      dtick: 0.1,
-      autorange: false
-    },
-    xaxis: {
-      title: {
-        text: '週数（年/週）',
-        font: {
-          size: 16,
-          color: '#000000'
-        }
-      },
-      tickfont: {
-        color: '#000000',
-        size: 12
-      },
-      gridcolor: '#e0e0e0',
-      tickangle: -45,
-      type: 'category', // カテゴリタイプに設定（年/週の順に表示）
-      dtick: 1, // すべての週を表示
-      tickmode: 'linear' // 均等間隔で表示
-    },
-    legend: {
-      traceorder: 'normal',
-      font: {
-        color: '#000000',
-        size: 12
-      },
-      orientation: 'h',
-      y: -0.25,
-      x: 0.5,
-      xanchor: 'center',
-      title: {
-        text: '系統名',
-        font: {
-          size: 14,
-          color: '#000000'
-        }
-      }
-    },
-    plot_bgcolor: '#ffffff',
-    paper_bgcolor: '#ffffff',
-    hovermode: 'closest',
-    barmode: 'stack',
-    showlegend: true
-  };
 
   // 選択されている県のデータのみを表示
   const selectedPrefectureData = prefectureData.find(d => d.prefecture === selectedPrefecture);
