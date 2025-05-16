@@ -4,28 +4,6 @@ import PlotComponent from '../../components/PlotComponent';
 import { CovidDataWithRelations } from '@/types/dataType';
 import { useCovidData } from '@/hooks/useCovidData';
 
-interface Prefecture {
-  id: number;
-  name: string;
-}
-
-interface Lineage {
-  id: number;
-  name: string;
-}
-
-interface CovidDataWithRelations {
-  id: number;
-  date: Date;
-  count: number;
-  ratio: number;
-  prefectureId: number;
-  lineageId: number;
-  wave: number;
-  prefecture: Prefecture;
-  lineage: Lineage;
-}
-
 const { fetchWaveData } = useCovidData();
 
 export default async function HeatmapPage({ params }: { params: { wave: string } }) {
