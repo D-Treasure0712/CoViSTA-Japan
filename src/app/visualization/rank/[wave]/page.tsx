@@ -2,28 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { Layout, Data } from 'plotly.js';
 import PlotComponent from '../../components/PlotComponent';
 import { type PrismaClient } from '@prisma/client';
-
-interface Prefecture {
-  id: number;
-  name: string;
-}
-
-interface Lineage {
-  id: number;
-  name: string;
-}
-
-interface CovidDataWithRelations {
-  id: number;
-  date: Date;
-  count: number;
-  ratio: number;
-  prefectureId: number;
-  lineageId: number;
-  wave: number;
-  prefecture: Prefecture;
-  lineage: Lineage;
-}
+import { CovidDataWithRelations } from '@/types/dataType';
 
 // 週番号を正確に計算する関数
 function getWeekNumber(date: Date): number {

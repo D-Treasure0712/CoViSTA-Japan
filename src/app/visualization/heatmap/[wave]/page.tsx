@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { Layout, Data } from 'plotly.js';
 import PlotComponent from '../../components/PlotComponent';
+import { CovidDataWithRelations } from '@/types/dataType';
 import { useCovidData } from '@/hooks/useCovidData';
 
 interface Prefecture {

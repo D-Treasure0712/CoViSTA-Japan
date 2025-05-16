@@ -2,13 +2,9 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { Layout, Data } from 'plotly.js';
+import { PlotComponentProps } from '@/types/dataType';
 import { usePlotDataProcess } from '@/hooks/usePlotDataprocess';
 import { usePlotLayout } from '@/hooks/usePlotLayout';
-
-interface PlotComponentProps {
-  data: Data[];
-  layout: Partial<Layout>;
-}
 
 export default function PlotComponent({ data, layout }: PlotComponentProps) {
   const [mounted, setMounted] = useState(false);
