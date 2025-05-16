@@ -8,3 +8,5 @@ build or rebuild : docker compose up --build
 access : http://localhost:3000
 
 stop : Ctrl+C or docker-compose down
+
+test
