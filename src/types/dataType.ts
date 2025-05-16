@@ -1,3 +1,5 @@
+import { Layout,Data } from 'plotly.js';
+
 /**
  * 都道府県データの型定義
  * id: 都道府県ID
@@ -40,4 +42,36 @@ export interface CovidDataWithRelations {
     wave: number;
     prefecture: Prefecture;
     lineage: Lineage;
+}
+
+/**
+ * 系統グループごとのグラフデータ構造
+ * Plotly.jsの積み上げグラフとして表示するためのデータ形式
+ */
+export interface LineageGroups {
+  [key: string]: {
+    x: string[];
+    y: number[];
+    name: string;
+    type: 'scatter';
+    stackgroup: string;
+    hovertemplate: string;
+  };
+}
+
+export interface PrefectureDataItem {
+  prefecture: string;
+  plotData: Data[];
+}
+
+export interface ClientPageProps {
+  wave: string;
+  prefectures: string[];
+  prefectureData: PrefectureDataItem[];
+  dataCount: number;
+}
+
+export interface PlotComponentProps {
+  data: Data[];
+  layout: Partial<Layout>;
 }

@@ -2,24 +2,9 @@
  * COVID-19の系統データを都道府県ごとに処理をし，可視化用に成形するhooks
  */
 
-import { CovidDataWithRelations } from "@/types/dataType";
+import { CovidDataWithRelations, LineageGroups } from "@/types/dataType";
 import { useCovidData } from "./useCovidData";
 import { Data } from 'plotly.js';
-
-/**
- * 系統グループごとのグラフデータ構造
- * Plotly.jsの積み上げグラフとして表示するためのデータ形式
- */
-interface LineageGroups {
-  [key: string]: {
-    x: string[];
-    y: number[];
-    name: string;
-    type: 'scatter';
-    stackgroup: string;
-    hovertemplate: string;
-  };
-}
 
 
 // サーバーサイドでデータを処理する関数

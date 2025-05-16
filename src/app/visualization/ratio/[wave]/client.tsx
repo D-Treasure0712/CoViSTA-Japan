@@ -5,18 +5,8 @@ import { Data } from 'plotly.js';
 import PlotComponent from '../../components/PlotComponent';
 import colors from '@/theme/rateColor';
 import layout from '@/theme/rateLayout';
+import { ClientPageProps } from '@/types/dataType';
 
-interface PrefectureDataItem {
-  prefecture: string;
-  plotData: Data[];
-}
-
-interface ClientPageProps {
-  wave: string;
-  prefectures: string[];
-  prefectureData: PrefectureDataItem[];
-  dataCount: number;
-}
 
 export default function ClientPage({ wave, prefectures, prefectureData, dataCount }: ClientPageProps) {
   const [selectedPrefecture, setSelectedPrefecture] = useState<string>(prefectures.length > 0 ? prefectures[0] : '');

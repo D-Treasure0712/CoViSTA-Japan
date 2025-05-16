@@ -1,12 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { Layout, Data } from 'plotly.js';
-
-interface PlotComponentProps {
-  data: Data[];
-  layout: Partial<Layout>;
-}
+import { PlotComponentProps } from '@/types/dataType';
 
 export default function PlotComponent({ data, layout }: PlotComponentProps) {
   const [mounted, setMounted] = useState(false);
