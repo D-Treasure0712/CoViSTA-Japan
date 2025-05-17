@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { Data } from 'plotly.js';
-import PlotComponent from '../../components/PlotComponent';
+import PlotComponent from '../PlotComponent';
 import colors from '@/theme/rateColor';
 import layout from '@/theme/rateLayout';
 import { ClientPageProps } from '@/types/dataType';
+import { PullDownMenu } from '../pullDownMenu';
 
 export default function ClientPage({ wave, prefectures, prefectureData, dataCount }: ClientPageProps) {
   const [selectedPrefecture, setSelectedPrefecture] = useState<string>(prefectures.length > 0 ? prefectures[0] : '');
@@ -47,23 +48,7 @@ export default function ClientPage({ wave, prefectures, prefectureData, dataCoun
     <div className="p-8 bg-white">
       <h1 className="text-2xl font-bold mb-4 text-gray-900">流行系統の比率</h1>
       
-      <div className="mb-6">
-        <label htmlFor="prefecture-select" className="block text-sm font-medium text-black mb-2">
-          表示する都道府県を選択
-        </label>
-        <select
-          id="prefecture-select"
-          value={selectedPrefecture}
-          onChange={(e) => setSelectedPrefecture(e.target.value)}
-          className="block w-full max-w-md px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-black"
-        >
-          {prefectures.map((prefecture) => (
-            <option key={prefecture} value={prefecture} className="text-black">
-              {prefecture}
-            </option>
-          ))}
-        </select>
-      </div>
+      <PullDownMenu prefectures={prefectures} selectedPrefecture={selectedPrefecture} setSelectedPrefecture={setSelectedPrefecture}/>
       
       {selectedPrefectureData && (
         <div className="border border-gray-300 rounded-lg p-4 bg-white shadow-sm">

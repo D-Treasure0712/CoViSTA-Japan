@@ -74,3 +74,37 @@ export interface ClientPageProps {
   prefectureData: PrefectureDataItem[];
   dataCount: number;
 }
+
+export interface PullDownMenuProps {
+  prefectures: string[];
+  setSelectedPrefecture: (prefecture: string) => void;
+  selectedPrefecture: string;
+}
+
+// 既存の型定義に追加
+
+export interface HeatmapClientProps {
+  wave: string;
+  prefectures: string[];
+  heatmapDataByPrefecture: {
+    prefecture: string;
+    lineages: string[]; // 都道府県ごとの系統リストを追加
+    heatmapData: {
+      z: number[][];
+      x: string[];
+      y: string[];
+      type: string;
+      colorscale: string;
+      name: string;
+      showscale: boolean;
+      colorbar: {
+        title: {
+          text: string;
+        };
+      };
+    };
+  }[];
+  dataCount: number;
+  dates: string[];
+  lineages: string[];
+}
