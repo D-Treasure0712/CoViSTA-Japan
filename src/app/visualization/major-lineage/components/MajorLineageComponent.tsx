@@ -8,24 +8,24 @@ interface DominantLineage {
   ratio: number;
 }
 
-interface PrefectureSummary {
+interface MajorLineageSummary {
   prefecture: string;
   dominantLineages: DominantLineage[];
 }
 
-interface PrefectureSummaryComponentProps {
+interface MajorLineageComponentProps {
   prefectures: string[];
   weeks: string[];
   lineages: string[];
-  summaryData: PrefectureSummary[];
+  summaryData: MajorLineageSummary[];
 }
 
-export default function PrefectureSummaryComponent({
+export default function MajorLineageComponent({
   prefectures,
   weeks,
   lineages,
   summaryData
-}: PrefectureSummaryComponentProps) {
+}: MajorLineageComponentProps) {
   const [mounted, setMounted] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
   const [showCompact, setShowCompact] = useState(true);

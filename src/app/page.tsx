@@ -41,16 +41,16 @@ export default function Home() {
         <section>
           <h2 className="text-2xl font-semibold mb-4">都道府県別系統推移</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Link href="/visualization/prefecture-summary/6-8" className="p-4 bg-yellow-100 rounded-lg hover:bg-yellow-200 text-black">
+            <Link href="/visualization/major-lineage/6-8" className="p-4 bg-yellow-100 rounded-lg hover:bg-yellow-200 text-black">
               第6～8波：都道府県別の主要系統推移
             </Link>
-            <Link href="/visualization/prefecture-summary/6" className="p-4 bg-yellow-100 rounded-lg hover:bg-yellow-200 text-black">
+            <Link href="/visualization/major-lineage/6" className="p-4 bg-yellow-100 rounded-lg hover:bg-yellow-200 text-black">
               第6波：都道府県別の主要系統推移
             </Link>
-            <Link href="/visualization/prefecture-summary/7" className="p-4 bg-yellow-100 rounded-lg hover:bg-yellow-200 text-black">
+            <Link href="/visualization/major-lineage/7" className="p-4 bg-yellow-100 rounded-lg hover:bg-yellow-200 text-black">
               第7波：都道府県別の主要系統推移
             </Link>
-            <Link href="/visualization/prefecture-summary/8" className="p-4 bg-yellow-100 rounded-lg hover:bg-yellow-200 text-black">
+            <Link href="/visualization/major-lineage/8" className="p-4 bg-yellow-100 rounded-lg hover:bg-yellow-200 text-black">
               第8波：都道府県別の主要系統推移
             </Link>
           </div>

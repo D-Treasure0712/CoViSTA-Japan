@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import PrefectureSummaryComponent from '../components/PrefectureSummaryComponent';
+import MajorLineageComponent from '../components/MajorLineageComponent';
 
 // 都道府県のインターフェース
 interface Prefecture {
@@ -178,7 +178,7 @@ function getYearWeek(dateInput: Date | string): string {
 }
 
 // 都道府県別の週ごとの主要系統データを生成する関数
-async function preparePrefectureSummaryData(wave: string) {
+async function prepareMajorLineageSummaryData(wave: string) {
   const data = await getData(wave);
   
   if (data.length === 0) {
@@ -267,7 +267,7 @@ async function preparePrefectureSummaryData(wave: string) {
   };
 }
 
-export default async function PrefectureSummaryPage({
+export default async function MajorLineagePage({
   params
 }: {
   params: { wave: string }
@@ -277,10 +277,10 @@ export default async function PrefectureSummaryPage({
   // 有効な波番号かチェック
   const validWaves = ['6', '7', '8', '6-8'];
   if (!validWaves.includes(wave)) {
-    redirect('/visualization/prefecture-summary/6-8');
+    redirect('/visualization/major-lineage/6-8');
   }
   
-  const data = await preparePrefectureSummaryData(wave);
+  const data = await prepareMajorLineageSummaryData(wave);
   
   return (
     <div className="container mx-auto px-4 py-8">
@@ -288,7 +288,7 @@ export default async function PrefectureSummaryPage({
         第{wave}波：都道府県別の主要流行系統推移
       </h1>
       
-      <PrefectureSummaryComponent 
+      <MajorLineageComponent 
         prefectures={data.prefectures}
         weeks={data.weeks}
         lineages={data.lineages}
