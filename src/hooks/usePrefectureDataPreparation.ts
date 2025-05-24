@@ -2,54 +2,9 @@
  * COVID-19の系統データを都道府県ごとに処理をし，可視化用に成形するhooks
  */
 
+import { CovidDataWithRelations, LineageGroups } from "@/types/dataType";
 import { useCovidData } from "./useCovidData";
 import { Data } from 'plotly.js';
-
-/**
- * 都道府県データの構造定義
- */
-interface Prefecture {
-  id: number; /* 都道府県のID */
-  name: string; /* 都道府県名 */
-}
-
-/**
- * ウイルス系統の構造定義
- */
-interface Lineage {
-  id: number; /* 系統のID */
-  name: string; /* 系統名 */
-}
-
-/**
- * COVID-19データの詳細構造
- */
-interface CovidDataWithRelations {
-  id: number; //データエントリのID
-  date: Date; // 検出日
-  count: number; // 検出数
-  ratio: number; // 検出比率
-  prefectureId: number; // 都道府県のID
-  lineageId: number; // 系統のID
-  wave: number; // 第何波か
-  prefecture: Prefecture; // 紐づく都道府県オブジェクト
-  lineage: Lineage; // 紐づく系統オブジェクト
-}
-
-/**
- * 系統グループごとのグラフデータ構造
- * Plotly.jsの積み上げグラフとして表示するためのデータ形式
- */
-interface LineageGroups {
-  [key: string]: {
-    x: string[];
-    y: number[];
-    name: string;
-    type: 'scatter';
-    stackgroup: string;
-    hovertemplate: string;
-  };
-}
 
 
 // サーバーサイドでデータを処理する関数

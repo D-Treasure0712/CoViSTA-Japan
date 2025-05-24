@@ -11,6 +11,7 @@ services:
       - "3000:3000" # ホストのポート 3000 をコンテナのポート 3000 にマッピング
     volumes:
       # 開発時のみ必要なボリュームマウント
+      - ./src:/app/src:delegated # ソースコードの変更を検知するため
       - ./prisma:/app/prisma:delegated
       - /app/node_modules
       - /app/.next
