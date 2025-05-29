@@ -1,71 +1,74 @@
 'use client';
 
+// Reactのフックをインポート
 import { useEffect, useMemo, useState } from 'react';
 
-interface DominantLineage {
-  week: string;
-  lineage: string | null;
-  ratio: number;
-}
+// 1週ごとの主要系統情報の型定義
+type DominantLineage = {
+  week: string; // 年/週形式
+  lineage: string | null; // 主要系統名（なければnull）
+  ratio: number; // その系統の比率
+};
 
-interface MajorLineageSummary {
-  prefecture: string;
-  dominantLineages: DominantLineage[];
-}
+// 都道府県ごとの主要系統推移データの型定義
+type MajorLineageSummary = {
+  prefecture: string; // 都道府県名
+  dominantLineages: DominantLineage[]; // 週ごとの主要系統配列
+};
 
+// このコンポーネントが受け取るpropsの型定義
 interface MajorLineageComponentProps {
-  prefectures: string[];
-  weeks: string[];
-  lineages: string[];
-  summaryData: MajorLineageSummary[];
+  prefectures: string[]; // 都道府県名リスト
+  weeks: string[];       // 年/週リスト
+  lineages: string[];    // 系統名リスト
+  summaryData: MajorLineageSummary[]; // 都道府県ごとの主要系統推移データ
 }
 
+// メインの可視化コンポーネント
 export default function MajorLineageComponent({
   prefectures,
   weeks,
   lineages,
   summaryData
 }: MajorLineageComponentProps) {
+  // マウント済み判定（SSR対策）
   const [mounted, setMounted] = useState(false);
+  // ウィンドウ幅（レスポンシブ用）
   const [windowWidth, setWindowWidth] = useState(0);
+  // 表示モード（現状は常にコンパクト）
   const [showCompact, setShowCompact] = useState(true);
 
+  // マウント時・リサイズ時の処理
   useEffect(() => {
     setMounted(true);
-    // ウィンドウサイズを取得
+    // ウィンドウサイズ取得＆コンパクト表示固定
     const updateWindowWidth = () => {
       setWindowWidth(window.innerWidth);
-      // 常にコンパクト表示を使用
-      setShowCompact(true);
+      setShowCompact(true); // 今は常にtrue
     };
-    
     updateWindowWidth();
-    
-    // リサイズイベントのリスナーを追加
     window.addEventListener('resize', updateWindowWidth);
     return () => window.removeEventListener('resize', updateWindowWidth);
   }, [weeks.length]);
 
-  // 系統ごとに一貫した色を割り当てるための関数
+  // 系統ごとに一貫した色を割り当てるマッピングを生成
   const getLineageColorMap = useMemo(() => {
-    // 色のリスト (いくつかの明確に区別できる色)
+    // 色リスト（最大20系統まで区別しやすい色）
     const colors = [
       '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
       '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
       '#aec7e8', '#ffbb78', '#98df8a', '#ff9896', '#c5b0d5',
       '#c49c94', '#f7b6d2', '#c7c7c7', '#dbdb8d', '#9edae5'
     ];
-    
-    // 系統と色のマッピングを作成
+    // 系統名→色のマッピングを作成
     const colorMap: Record<string, string> = {};
     lineages.forEach((lineage, index) => {
       colorMap[lineage] = colors[index % colors.length];
     });
-    
     return colorMap;
   }, [lineages]);
 
-  // 系統ごとの色凡例
+  // 系統ごとの色凡例を表示する関数
   const renderLegend = () => {
     return (
       <div className="mt-4 mb-6">
@@ -85,7 +88,7 @@ export default function MajorLineageComponent({
     );
   };
 
-  // 表形式でデータを表示（コンパクト版）
+  // 表形式で主要系統推移を表示する（都道府県×週）
   const renderTable = () => {
     return (
       <>
@@ -96,7 +99,9 @@ export default function MajorLineageComponent({
           <table className="w-full bg-white border-collapse" style={{ tableLayout: 'fixed' }}>
             <thead className="sticky top-0 z-10 shadow-sm">
               <tr>
+                {/* 1列目: 都道府県名 */}
                 <th className="px-2 py-2 border-b border-r text-left text-black font-medium bg-white" style={{ width: '100px' }}>都道府県</th>
+                {/* 2列目以降: 各週 */}
                 {weeks.map(week => (
                   <th 
                     key={week} 
@@ -113,15 +118,17 @@ export default function MajorLineageComponent({
               </tr>
             </thead>
             <tbody>
+              {/* 各都道府県ごとに1行 */}
               {summaryData.map(({ prefecture, dominantLineages }) => (
                 <tr key={prefecture}>
                   <td className="px-2 py-1 border-b border-r font-medium whitespace-nowrap text-black">{prefecture}</td>
+                  {/* 各週ごとに主要系統セルを表示 */}
                   {weeks.map(week => {
                     const dominantData = dominantLineages.find(d => d.week === week);
                     const lineage = dominantData?.lineage || null;
                     const ratio = dominantData?.ratio || 0;
+                    // 系統ごとの色を背景色に
                     const bgColor = lineage ? getLineageColorMap[lineage] || '#cccccc' : '#f8f9fa';
-                    
                     return (
                       <td 
                         key={`${prefecture}-${week}`} 
@@ -133,6 +140,7 @@ export default function MajorLineageComponent({
                           fontSize: '0.65rem'
                         }}
                       >
+                        {/* 系統名を表示。なければ'-' */}
                         {lineage ? (
                           <div className="font-medium">{lineage}</div>
                         ) : '-'}
@@ -148,30 +156,32 @@ export default function MajorLineageComponent({
     );
   };
 
-  // 色の明るさを計算する関数（コントラスト調整用）
+  // 色の明るさを計算する関数（コントラスト調整用・現状未使用）
   function getBrightness(color: string): number {
-    // #rrggbb から RGB 値を取り出す
+    // #rrggbb からRGB値を取得
     const hex = color.replace('#', '');
     const r = parseInt(hex.substr(0, 2), 16);
     const g = parseInt(hex.substr(2, 2), 16);
     const b = parseInt(hex.substr(4, 2), 16);
-    
-    // 明るさの計算 (YIQ式)
+    // YIQ式で明るさを算出
     return (r * 299 + g * 587 + b * 114) / 1000;
   }
 
+  // SSR時はLoading表示
   if (!mounted) {
     return <div>Loading...</div>;
   }
 
+  // メインの描画部分
   return (
     <div className="w-full">
+      {/* 系統色の凡例 */}
       {renderLegend()}
-      
       <div className="w-full">
         <h2 className="text-xl font-semibold mb-3">都道府県別の主要流行系統推移</h2>
+        {/* 主要系統推移表 */}
         {renderTable()}
       </div>
     </div>
   );
-} 
+}
