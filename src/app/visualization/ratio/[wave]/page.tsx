@@ -1,5 +1,5 @@
 // クライアントコンポーネントのインポート
-import ClientPage from './client';
+import ClientPage from '../../components/Pages/clientRatio';
 
 //hooks
 import { usePrefectureDataPreparation } from '@/hooks/usePrefectureDataPreparation';
