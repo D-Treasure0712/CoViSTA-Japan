@@ -1,11 +1,10 @@
 // クライアントコンポーネントのインポート
 import ClientPage from '../../components/Pages/clientRatio';
 
-//hooks
-import { usePrefectureDataPreparation } from '@/hooks/usePrefectureDataPreparation';
+// サーバーサイド関数
+import { preparePrefectureData } from '@/lib/prefectureDataPreparation';
 
 export default async function Page({ params }: { params: { wave: string } }) {
-  const { preparePrefectureData } = usePrefectureDataPreparation()
   const wave = params.wave;
   const { prefectures, prefectureData, dataCount, isEmpty } = await preparePrefectureData(wave);
   

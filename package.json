@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "import-data": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/import-data.ts",
+    "import-rank-data": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/import-rank-data.ts",
     "fix-lineage-data": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/fix-lineage-data.ts",
     "update-year-week": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/update-year-week.ts",
     "migrate-date-data": "NODE_OPTIONS='--loader ts-node/esm' ts-node scripts/migrate-date-data.ts",

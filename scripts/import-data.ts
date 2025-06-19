@@ -115,9 +115,16 @@ async function importData() {
   try {
     console.log('データのインポートを開始します...');
 
-    // データベースをクリーンな状態にするため既存データを削除
+    // SQLiteの外部キー制約を一時的に無効化
+    await prisma.$executeRaw`PRAGMA foreign_keys = OFF`;
+    
+    // CovidDataのみを削除（RankDataは保持）
     await prisma.covidData.deleteMany();
     await prisma.prefecture.deleteMany();
+    await prisma.lineage.deleteMany();
+    
+    // 外部キー制約を再有効化
+    await prisma.$executeRaw`PRAGMA foreign_keys = ON`;
     
     // データファイルがあるディレクトリのパスを設定
     const baseDir = join(process.cwd(), 'nakano_src', 'visualize_tool');

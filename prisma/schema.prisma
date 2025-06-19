@@ -18,12 +18,14 @@ model Prefecture {
   id        Int         @id @default(autoincrement())
   name      String      @unique
   covidData CovidData[]
+  rankData  RankData[]
 }
 
 model Lineage {
   id        Int         @id @default(autoincrement())
   name      String      @unique
   covidData CovidData[]
+  rankData  RankData[]
 }
 
 model CovidData {
@@ -40,4 +42,20 @@ model CovidData {
   @@index([date])
   @@index([prefectureId])
   @@index([lineageId])
+}
+
+model RankData {
+  id           Int        @id @default(autoincrement())
+  date         String     // 年/週番号 (例: 2022/1)
+  rank         Int?       // 順位 (null許可で欠損値を表現)
+  prefecture   Prefecture @relation(fields: [prefectureId], references: [id])
+  prefectureId Int
+  lineage      Lineage    @relation(fields: [lineageId], references: [id])
+  lineageId    Int
+  wave         Int
+
+  @@index([date])
+  @@index([prefectureId])
+  @@index([lineageId])
+  @@index([wave])
 }

@@ -11,6 +11,15 @@ const nextConfig = {
       aggregateTimeout: 300,
       ignored: ['**/node_modules', '**/.git'],
     };
+    
+    // browserslistの動的requireを解決
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      path: false,
+      os: false,
+    };
+    
     return config;
   },
 }

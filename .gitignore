@@ -2,10 +2,9 @@
 
 # dependencies
 /node_modules
-<<<<<<< HEAD
 /nakano_src
-=======
->>>>>>> 1830ad50d286bcfa2c180a01d3eaa136656af8e5
+CLAUDE.md
+
 /.pnp
 .pnp.*
 .yarn/*

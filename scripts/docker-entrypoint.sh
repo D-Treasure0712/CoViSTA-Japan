@@ -37,25 +37,39 @@ if [ $retry_count -eq $max_retries ]; then
   exit 1
 fi
 
-# 簡易的なデータインポートチェック
-if [ -d "/app/nakano_src" ] && [ -f "/app/scripts/import-data.ts" ]; then
-  echo "Checking if data import is needed..."
-  # データが存在するかどうかをシンプルなクエリで確認
-  # SQLiteのコマンドラインでチェック
-  if [ -f "/app/prisma/dev.db" ]; then
-    DATA_COUNT=$(sqlite3 /app/prisma/dev.db "SELECT count(*) FROM CovidData LIMIT 1;" 2>/dev/null || echo "0")
-    
-    if [ "$DATA_COUNT" = "0" ] || [ -z "$DATA_COUNT" ]; then
-      echo "Database is empty, importing data..."
-      npm run import-data
+# データインポートチェック（初回起動時のみ）
+if [ ! -f "/app/.data-imported" ] && [ -d "/app/nakano_src" ] && [ -f "/app/scripts/import-data.ts" ]; then
+  echo "First time setup: Importing data..."
+  
+  # メインデータのインポート
+  echo "Importing main COVID data..."
+  if npm run import-data; then
+    echo "Main data import successful"
+  else
+    echo "Error: Main data import failed, but continuing startup..."
+  fi
+  
+  # ランクデータのインポート
+  if [ -d "/app/nakano_src/visualize_tool" ] && [ -f "/app/scripts/import-rank-data.ts" ]; then
+    echo "Importing rank data..."
+    if npm run import-rank-data; then
+      echo "Rank data import successful"
     else
-      echo "Data already exists, skipping import"
+      echo "Warning: Rank data import failed, but continuing startup..."
     fi
   else
-    echo "Database file does not exist yet, will be created during app startup"
+    echo "Warning: Rank data directories or import script not found, skipping rank data import"
   fi
+  
+  # インポート完了フラグを作成
+  touch /app/.data-imported
+  echo "Data import completed, created flag file"
 else
-  echo "Warning: nakano_src directory or import script not found, skipping data import"
+  if [ -f "/app/.data-imported" ]; then
+    echo "Data already imported (found flag file), skipping import"
+  else
+    echo "Warning: nakano_src directory or import script not found, skipping data import"
+  fi
 fi
 
 # Start the main application

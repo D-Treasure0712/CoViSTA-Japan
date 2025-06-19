@@ -1,8 +1,8 @@
 // クライアントコンポーネントのインポート
 import ClientPage from '../../components/Pages/clientHeatmap';
 
-// hooks
-import { usePrefectureDataPreparation } from '@/hooks/usePrefectureDataPreparation';
+// サーバーサイド関数
+import { preparePrefectureData } from '@/lib/prefectureDataPreparation';
 import { PlotData } from 'plotly.js'; // Plotlyの型をインポート
 
 // ScatterDataのプロパティを持つことを期待する型を定義
@@ -14,9 +14,8 @@ interface ScatterTrace extends PlotData {
 }
 
 export default async function HeatmapPage({ params }: { params: { wave: string } }) {
-  const { preparePrefectureData } = usePrefectureDataPreparation();
   const wave = params.wave;
-  // usePrefectureDataPreparationフックを使ってデータを取得・整形
+  // preparePrefectureData関数を使ってデータを取得・整形
   const { prefectures, prefectureData, dataCount, isEmpty } = await preparePrefectureData(wave);
 
   // データが空の場合はエラーメッセージを表示

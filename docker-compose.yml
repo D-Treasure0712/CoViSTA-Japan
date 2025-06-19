@@ -13,6 +13,8 @@ services:
       # 開発時のみ必要なボリュームマウント
       - ./src:/app/src:delegated # ソースコードの変更を検知するため
       - ./prisma:/app/prisma:delegated
+      - ./nakano_src:/app/nakano_src:delegated # データファイルへのアクセス
+      - ./scripts:/app/scripts:delegated # インポートスクリプトへのアクセス
       - /app/node_modules
       - /app/.next
     environment:

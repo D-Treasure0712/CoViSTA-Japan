@@ -45,6 +45,28 @@ export interface CovidDataWithRelations {
 }
 
 /**
+ * ランクデータと関連情報を含む型定義
+ * id: データID
+ * date: 日付（年/週番号）
+ * rank: 順位（nullの場合は欠損値）
+ * prefectureId: 都道府県ID（外部キー）
+ * lineageId: 系統ID（外部キー）
+ * wave: 感染波の番号
+ * prefecture: 都道府県の関連データ
+ * lineage: 系統の関連データ
+ */
+export interface RankDataWithRelations {
+    id: number;
+    date: string;
+    rank: number | null;
+    prefectureId: number;
+    lineageId: number;
+    wave: number;
+    prefecture: Prefecture;
+    lineage: Lineage;
+}
+
+/**
  * 系統グループごとのグラフデータ構造
  * Plotly.jsの積み上げグラフとして表示するためのデータ形式
  */
