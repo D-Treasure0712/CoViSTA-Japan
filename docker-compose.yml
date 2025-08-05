@@ -9,6 +9,7 @@ services:
     container_name: covista-japan # コンテナに名前を付ける
     ports:
       - "3000:3000" # ホストのポート 3000 をコンテナのポート 3000 にマッピング
+      - "5555:5555"
     volumes:
       # 開発時のみ必要なボリュームマウント
       - ./src:/app/src:delegated # ソースコードの変更を検知するため
