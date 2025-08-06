@@ -122,8 +122,8 @@ async function importData() {
     // データファイルがあるディレクトリのパスを設定
     const baseDir = join(process.cwd(), 'nakano_src', 'visualize_tool');
     // 処理する各波（第6波、第7波、第8波、第6-8波の統合データ）のディレクトリ
-    const waveDirs = ['6wave', '7wave', '8wave', '6-8wave'];
-    
+    const waveDirs = ['6wave', '7wave', '8wave', '6-8wave']; 
+
     // 都道府県データを格納するためのマップを初期化
     const prefectures = new Map<string, number>();
     const prefectureSet = new Set<string>(); // 重複を避けるためにSetを使用
@@ -183,6 +183,7 @@ async function importData() {
     
     console.log(`データベースから取得した系統数: ${lineages.size}`);
     
+    // こっからCovidDataのインポート処理を開始
     // 各波のデータを処理
     for (const waveDir of waveDirs) {
       const wavePath = join(baseDir, waveDir);
@@ -198,6 +199,7 @@ async function importData() {
       
       for (const file of csvFiles) {
         // 都道府県名をファイル名から抽出
+        // 6-8波がインポートされないのは、ここで、\dが1文字の数値で見ているからだと仮定
         const match = file.match(/Rank_lineage_([^_]+)_\d+wave\.csv/);
         if (!match || !match[1]) continue;
         
@@ -234,10 +236,19 @@ async function importData() {
           if (!lineageName) continue;
           
           // 系統IDを取得
-          const lineageId = lineages.get(lineageName);
+          let lineageId = lineages.get(lineageName);
           if (!lineageId) {
-            console.log(`系統IDが見つかりません: ${lineageName}`);
-            continue;
+            try {
+              console.log(`[+] 新規系統を検出、DBに登録します: ${lineageName}`);
+              const createdLineage = await prisma.lineage.create({
+                data: { name: lineageName },
+              });
+              lineageId = createdLineage.id;
+              lineages.set(lineageName, lineageId); // Mapにも追加して再利用
+            } catch (e) {
+              console.error(`系統の新規登録に失敗しました: ${lineageName}`, e);
+              continue; // 登録に失敗した場合はこの系統をスキップ
+            }
           }
           
           // 各日付のデータを処理（2列目以降）
@@ -252,6 +263,7 @@ async function importData() {
             // 検出数を整数に変換（値が不正な場合は0）
             const count = parseInt(value) || 0;
             // パーセントから小数の割合に変換（例: 75% → 0.75）
+            // もうひとつ先にfor文を回して合計を計算してここの分母にいれると
             const ratio = count / 100;
             
             try {
@@ -279,6 +291,90 @@ async function importData() {
     // インポート完了後の統計情報を表示
     const dataCount = await prisma.covidData.count();
     console.log(`データのインポートが完了しました。登録データ数: ${dataCount}`);
+
+    const rankDirs = ['6wave_Rank', '7wave_Rank', '8wave_Rank', '6-8wave_Rank'];
+
+    for (const rankDir of rankDirs) {
+      const rankPath = join(baseDir, rankDir);
+      const waveNumMatch = rankDir.match(/(\d+)/);
+      const waveNum = rankDir.includes('6-8wave') ? 0 : (waveNumMatch ? parseInt(waveNumMatch[0]) : 0);
+      if (!fs.existsSync(rankPath)) {
+          console.log(`[Rank] 順位データディレクトリが存在しません: ${rankPath}`);
+          continue;
+      }
+
+      const files = await readdir(rankPath);
+      const csvFiles = files.filter(file => file.endsWith('_Rank.csv'));
+      for (const file of csvFiles) {
+          // ファイル名から都道府県名を抽出 (例: Rank_lineage_Aichi_6wave_Rank.csv)
+          const match = file.match(/Rank_lineage_([^_]+)_\d+wave_Rank\.csv/);
+          if (!match || !match[1]) continue;
+
+          const prefectureName = match[1];
+          if (prefectureName === 'all' || prefectureName === 'easy' || prefectureName === 'major') continue;
+          const prefectureId = prefectures.get(prefectureName);
+          if (!prefectureId) {
+              console.log(`[Rank] 都道府県IDが見つかりません: ${prefectureName}`);
+              continue;
+          }
+          const filePath = join(rankPath, file);
+          const fileContent = fs.readFileSync(filePath, 'utf8');
+          const lines = fileContent.split('\n').filter(line => line.trim() !== '');
+          const header = lines[0]; //NanNan週問題の根源説
+          const dateKeys = header.split(',').slice(1);
+
+          for (let i = 1; i < lines.length; i++) {
+              const line = lines[i];
+              const values = line.split(',');
+              const lineageName = values[0];
+              if (!lineageName) continue;
+              let lineageId = lineages.get(lineageName);
+              if (!lineageId) {
+                try {
+                  console.log(`[+] 新規系統を検出、DBに登録します: ${lineageName}`);
+                  const createdLineage = await prisma.lineage.create({
+                    data: { name: lineageName },
+                  });
+                  lineageId = createdLineage.id;
+                  lineages.set(lineageName, lineageId);
+                  } catch (e) {
+                  console.error(`系統の新規登録に失敗しました: ${lineageName}`, e);
+                  continue;
+                }
+              }
+              for (let j = 1; j < values.length && j - 1 < dateKeys.length; j++) {
+                  const dateKey = dateKeys[j - 1]?.trim();
+                  const rankValueStr = values[j]?.trim();
+
+                  if (!dateKey || !rankValueStr) continue;
+
+                  const formattedDate = parseDate(dateKey);
+                  const rank = parseInt(rankValueStr, 10);
+
+                  if (isNaN(rank)) continue;
+                  try {
+                      // 既存のデータレコードを特定し、rankフィールドを更新
+                      await prisma.covidData.updateMany({
+                          where: {
+                              prefectureId: prefectureId,
+                              lineageId: lineageId,
+                              date: formattedDate,
+                              wave: waveNum,
+                          },
+                          data: {
+                              rank: rank,
+                          },
+                      });
+                    } catch (error) {
+                        console.error(`[Rank] 順位データの更新に失敗しました: ${prefectureName}, ${lineageName}, ${dateKey}`, error);
+                    }
+              }
+          }
+          console.log(`[Rank] 順位ファイルを追加しました: ${file}`);
+      }
+    }
+    console.log('順位データの追加（更新）が完了しました。');
+
   } catch (error) {
     console.error('データのインポート中にエラーが発生しました:', error);
     throw error;
