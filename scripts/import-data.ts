@@ -223,6 +223,31 @@ async function importData() {
         // ヘッダー行から日付の列を取得
         const header = lines[0].trim();
         const dateKeys = header.split(',').slice(1); // 最初の列（系統名）をスキップ
+
+       // 各日付の合計を事前に計算
+        const dateTotals = new Map<number, number>(); // 日付インデックス -> 合計値
+        
+        // まず全データを収集して各日付の合計を計算
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+          
+          const values = line.split(',');
+          if (values.length <= 1) continue;
+          
+          const lineageName = values[0];
+          if (!lineageName) continue;
+          
+          // 各日付のカウントを合計に加算
+          for (let j = 1; j < values.length && j - 1 < dateKeys.length; j++) {
+            const value = values[j];
+            if (!value) continue;
+            
+            const count = parseInt(value) || 0;
+            const currentTotal = dateTotals.get(j) || 0;
+            dateTotals.set(j, currentTotal + count);
+          }
+        }
         
         // データ行を1行ずつ処理
         for (let i = 1; i < lines.length; i++) {
@@ -263,9 +288,9 @@ async function importData() {
             const formattedDate = parseDate(dateKey);
             // 検出数を整数に変換（値が不正な場合は0）
             const count = parseInt(value) || 0;
-            // パーセントから小数の割合に変換（例: 75% → 0.75）
-            // もうひとつ先にfor文を回して合計を計算してここの分母にいれると
-            const ratio = count / 100;
+            // その日付の合計値を取得し、0で割ることを防ぐ
+            const total = dateTotals.get(j) || 0;
+            const ratio = total > 0 ? count / total : 0;
             
             try {
               // 変換したデータをデータベースに保存
