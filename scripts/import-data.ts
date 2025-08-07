@@ -347,12 +347,15 @@ async function importData() {
                   const dateKey = dateKeys[j - 1]?.trim();
                   const rankValueStr = values[j]?.trim();
 
-                  if (!dateKey || !rankValueStr) continue;
+                  if (!dateKey) continue;
 
                   const formattedDate = parseDate(dateKey);
-                  const rank = parseInt(rankValueStr, 10);
-
-                  if (isNaN(rank)) continue;
+                  // rankValueStrが空文字列、null、undefinedの場合は0を設定
+                  let rank = 0;
+                  if (rankValueStr && rankValueStr !== '') {
+                      const parsedRank = parseInt(rankValueStr, 10);
+                      rank = isNaN(parsedRank) ? 0 : parsedRank;
+                  }
                   try {
                       // 既存のデータレコードを特定し、rankフィールドを更新
                       await prisma.covidData.updateMany({
