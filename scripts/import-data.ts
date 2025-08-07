@@ -148,7 +148,8 @@ async function importData() {
       // ファイル名から都道府県名を抽出
       for (const file of csvFiles) {
         // 「Rank_lineage_都道府県名_Nwave.csv」という命名規則からマッチング
-        const match = file.match(/Rank_lineage_([^_]+)_\d+wave\.csv/);
+        // 正規表現[/d-]は、数字(/d)またはハイフン(-)が1文字以上続く文字列を抽出
+        const match = file.match(/Rank_lineage_([^_]+)_[\d-]+wave\.csv/);
         if (match && match[1]) {
           const prefecture = match[1];
           // 特殊なファイル（all, easy, major）は都道府県ではないのでスキップ
@@ -200,7 +201,7 @@ async function importData() {
       for (const file of csvFiles) {
         // 都道府県名をファイル名から抽出
         // 6-8波がインポートされないのは、ここで、\dが1文字の数値で見ているからだと仮定
-        const match = file.match(/Rank_lineage_([^_]+)_\d+wave\.csv/);
+        const match = file.match(/Rank_lineage_([^_]+)_[\d-]+wave\.csv/);
         if (!match || !match[1]) continue;
         
         const prefecture = match[1];
@@ -307,7 +308,7 @@ async function importData() {
       const csvFiles = files.filter(file => file.endsWith('_Rank.csv'));
       for (const file of csvFiles) {
           // ファイル名から都道府県名を抽出 (例: Rank_lineage_Aichi_6wave_Rank.csv)
-          const match = file.match(/Rank_lineage_([^_]+)_\d+wave_Rank\.csv/);
+          const match = file.match(/Rank_lineage_([^_]+)_[\d-]+wave_Rank\.csv/);
           if (!match || !match[1]) continue;
 
           const prefectureName = match[1];
