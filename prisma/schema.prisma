@@ -36,6 +36,7 @@ model CovidData {
   lineage      Lineage    @relation(fields: [lineageId], references: [id])
   lineageId    Int
   wave         Int
+  rank         Int?
 
   @@index([date])
   @@index([prefectureId])
