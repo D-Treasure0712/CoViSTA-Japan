@@ -34,7 +34,6 @@ async function getData(wave: string) {
       orderBy: [
         { date: 'asc' }
       ],
-      take: 10000 // データ量を制限
     });
 
     // デバッグ: データの取得状況を確認
@@ -42,7 +41,7 @@ async function getData(wave: string) {
     if (data.length > 0) {
       console.log('最初のデータ例:', JSON.stringify(data[0], null, 2));
       console.log('ユニーク系統数:', new Set(data.map(d => d.lineage.name)).size);
-      console.log('ユニーク日付数:', new Set(data.map(d => d.date.toISOString().split('T')[0])).size);
+      console.log('ユニーク日付数:', new Set(data.map(d => d.date)).size);
     } else {
       console.log('取得データが0件です。where条件を確認してください。');
     }
@@ -73,24 +72,12 @@ export default async function RankPage({ params }: { params: { wave: string } })
       </div>
     );
   }
+    // 20位以内のデータのみをフィルタリング（rank > 0 かつ rank <= 20）
+  const rankedData = data.filter((d: CovidDataWithRelations) => d.rank !== null);
   
   // データを整形（上位10系統のみに制限）
-  const dates = [...new Set<string>(data.map((d: CovidDataWithRelations) => d.date.toISOString().split('T')[0]))].sort();
+  const dates = [...new Set<string>(data.map((d: CovidDataWithRelations) => d.date))].sort();
   let lineages = [...new Set<string>(data.map((d: CovidDataWithRelations) => d.lineage.name))];
-  
-  // 出現頻度が高い系統のみを表示（パフォーマンス向上のため）
-  if (lineages.length > 10) {
-    // 各系統の出現回数をカウント
-    const lineageCounts = lineages.map(lineage => {
-      const count = data.filter(d => d.lineage.name === lineage).length;
-      return { lineage, count };
-    });
-    
-    // 出現回数で降順ソートして上位10のみを選択
-    lineageCounts.sort((a, b) => b.count - a.count);
-    lineages = lineageCounts.slice(0, 10).map(item => item.lineage);
-    console.log(`表示する系統を${lineages.length}個に制限しました`);
-  }
 
   // 系統が見つからない場合はダミーデータを作成
   if (lineages.length === 0) {
@@ -111,36 +98,19 @@ export default async function RankPage({ params }: { params: { wave: string } })
   // デバッグ: 整形後のデータを確認
   console.log(`整形後 - 日付数: ${dates.length}, 系統数: ${lineages.length}`);
 
-  // 各日付での系統の順位を計算
-  const rankData = dates.map(date => {
-    const dateData = data.filter((d: CovidDataWithRelations) => d.date.toISOString().split('T')[0] === date);
-    
-    // 各系統の合計比率を計算
-    const lineageRatios = lineages.map(lineage => {
-      const lineageData = dateData.filter((d: CovidDataWithRelations) => d.lineage.name === lineage);
-      const totalRatio = lineageData.reduce((sum: number, d: CovidDataWithRelations) => sum + d.ratio, 0);
-      return { lineage, totalRatio };
-    });
-
-    // 比率で降順ソートして順位を付ける
-    lineageRatios.sort((a, b) => b.totalRatio - a.totalRatio);
-    const ranks = new Map(lineageRatios.map((item, index) => [item.lineage, index + 1]));
-
-    return { date, ranks };
-  });
 
   // Plotly.jsのデータ形式に変換
   const plotData = lineages.map((lineage, index) => {
     // X軸の日付ラベルとY軸の順位データを作成
-    const xValues = dates.map(d => {
-      const date = new Date(d as string);
-      const weekNum = getWeekNumber(date);
-      return `${date.getFullYear()}/${weekNum}週`;
-    });
+    const xValues = dates;
     
     const yValues = dates.map(date => {
-      const dateRanks = rankData.find(d => d.date === date);
-      return dateRanks ? dateRanks.ranks.get(lineage) : null;
+      const dateRanks = rankedData.find(d => d.date === date && d.lineage.name === lineage);
+      if (!dateRanks) return null;
+      
+      // rank が 0 または null の場合は 21位として表示
+      const displayRank = (dateRanks.rank === null || dateRanks.rank === 0) ? 21 : dateRanks.rank;
+      return displayRank;
     });
     
     // デバッグ: 各系統のデータポイント数を確認
@@ -153,12 +123,13 @@ export default async function RankPage({ params }: { params: { wave: string } })
       type: 'scatter' as const,
       mode: 'lines+markers' as const,
       line: { 
-        shape: 'hv' as const,
+        shape: 'linear' as const,
         color: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'][index % 10]
       },
       marker: {
         color: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'][index % 10]
-      }
+      },
+      connectgaps: true
     };
   });
 
@@ -198,6 +169,7 @@ export default async function RankPage({ params }: { params: { wave: string } })
       tickmode: 'linear',
       tick0: 1,
       dtick: 1,
+      range: [21.5, 0.5],
       tickfont: {
         color: '#000000',
         size: 12

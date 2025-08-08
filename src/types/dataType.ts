@@ -42,6 +42,7 @@ export interface CovidDataWithRelations {
     wave: number;
     prefecture: Prefecture;
     lineage: Lineage;
+    rank: number | null;
 }
 
 /**
