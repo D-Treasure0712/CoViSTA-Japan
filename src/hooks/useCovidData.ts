@@ -41,20 +41,8 @@ export function useCovidData() {
 			return [];
 		}
 	}
-	function formatWeek(date: Date) {
-		const d = new Date(date);
-		
-		// ISO 8601形式の週番号を計算
-		// 1月1日を含む週を第1週とする
-		const firstDayOfYear = new Date(d.getFullYear(), 0, 1);
-		const pastDaysOfYear = (d.getTime() - firstDayOfYear.getTime()) / 86400000;
-		const weekNumber = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-		
-		return `${d.getFullYear()}/${weekNumber}週`;
-	}
 
 	return {
-		fetchWaveData,
-		formatWeek
+		fetchWaveData
 	};
 }

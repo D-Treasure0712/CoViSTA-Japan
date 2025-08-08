@@ -9,7 +9,7 @@ import { Data } from 'plotly.js';
 
 // サーバーサイドでデータを処理する関数
 export function usePrefectureDataPreparation() {
-  const { fetchWaveData, formatWeek } = useCovidData()
+  const { fetchWaveData } = useCovidData()
   /**
    * 指定された波（期間）のデータを取得し，都道府県ごとに処理する関数
    * param {string} wave - 対象となる波の識別子
@@ -43,7 +43,7 @@ export function usePrefectureDataPreparation() {
        * 形式: { "2022/10週": [データ配列], "2022/11週": [データ配列], ... }
        */
       const dateGroups = filteredData.reduce((acc: { [key: string]: CovidDataWithRelations[] }, item: CovidDataWithRelations) => {
-        const weekKey = formatWeek(item.date);
+        const weekKey = item.date;
         if (!acc[weekKey]) {
           acc[weekKey] = [];
         }
@@ -66,56 +66,22 @@ export function usePrefectureDataPreparation() {
         .sort((a, b) => b[1] - a[1])
         .map(([name]) => name);
       
-      // 系統がない場合はダミーデータを作成
-      if (topLineages.length === 0) {
-        return {
-          prefecture,
-          plotData: [
-            {
-              x: ['2022/1週', '2022/2週', '2022/3週'],
-              y: [0, 0, 0],
-              name: 'データなし',
-              type: 'scatter',
-              mode: 'lines',
-              line: { color: '#cccccc' }
-            } as Data
-          ]
-        };
-      }
       
       console.log(`${prefecture} 上位系統: ${topLineages.join(', ')}`);
 
       // 各週での系統の割合を計算
       const lineageGroups: LineageGroups = {};
       
-      // まず各週ごとに系統データを集める
-      const weekData: { [week: string]: { [lineage: string]: number } } = {};
       
       // 週ごとにデータを整理
       Object.entries(dateGroups).forEach(([week, items]) => {
-        if (!weekData[week]) {
-          weekData[week] = {};
-        }
         
         // 選択された上位系統だけをフィルタリング
         (items as CovidDataWithRelations[])
           .filter((item: CovidDataWithRelations) => topLineages.includes(item.lineage.name))
           .forEach((item: CovidDataWithRelations) => {
-            weekData[week][item.lineage.name] = item.ratio;
-          });
-      });
-      
-      // 週ごとに合計を計算して正規化
-      Object.entries(weekData).forEach(([week, lineages]) => {
-        // 週の合計を計算
-        const weekTotal = Object.values(lineages).reduce((sum, ratio) => sum + ratio, 0);
-        
-        // 各系統の正規化された比率を計算
-        if (weekTotal > 0) {
-          Object.entries(lineages).forEach(([lineageName, ratio]) => {
-            // 正規化された比率
-            const normalizedRatio = ratio / weekTotal;
-            
+            const lineageName = item.lineage.name;
+
             // 系統ごとのデータに追加
             if (!lineageGroups[lineageName]) {
               lineageGroups[lineageName] = {
@@ -129,23 +95,10 @@ export function usePrefectureDataPreparation() {
             }
             
             lineageGroups[lineageName].x.push(week);
-            lineageGroups[lineageName].y.push(normalizedRatio);
+            lineageGroups[lineageName].y.push(item.ratio);
           });
-        }
       });
       
-      // 各週のデータを合計が1.0(100%)になるか確認
-      const weeks = Object.keys(weekData);
-      weeks.forEach(week => {
-        let weekSum = 0;
-        Object.values(lineageGroups).forEach(lg => {
-          const idx = lg.x.indexOf(week);
-          if (idx !== -1) {
-            weekSum += lg.y[idx];
-          }
-        });
-        console.log(`Week ${week} - 合計比率: ${(weekSum * 100).toFixed(2)}%`);
-      });
 
       return {
         prefecture,
