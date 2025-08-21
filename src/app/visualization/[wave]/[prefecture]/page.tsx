@@ -1,17 +1,13 @@
 /**
  * @file src/app/visualization/[wave]/[prefecture]/page.tsx
  * @description
- * このファイルは、グラフ表示ページのサーバーコンポーネントです。
- * [修正点]
- * - データベースのPrefectureテーブルには英語名が格納されているため、
- * データ取得関数(get...Data)には、URLから取得した英語名の都道府県名を直接渡すように修正しました。
- * - UI表示用の日本語名は別途`prefectureReverseMap`で変換し、クライアントコンポーネントに渡します。
+ * グラフ表示ページのサーバーコンポーネント
  */
 
 import { getRatioAndHeatmapData, getRankData } from '@/lib/data';
 import VisualizationClient from './VisualizationClient';
 import Link from 'next/link';
-import { prefectureReverseMap } from '@/lib/prefectureMapping'; // 逆引きマップをインポート
+import { prefectureReverseMap } from '@/lib/prefectureMapping';
 
 export default async function VisualizationPage({
   params,
@@ -21,10 +17,9 @@ export default async function VisualizationPage({
   const wave = params.wave;
   const englishPrefecture = params.prefecture;
 
-  // UI表示用に、英語名を日本語名に変換
   const japanesePrefecture = prefectureReverseMap[englishPrefecture];
 
-  // 不正なURL（対応する日本語名がない）の場合のガード処理
+  // 不正なURL（対応する日本語名がない）の場合のエラー処理
   if (!japanesePrefecture) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -41,7 +36,7 @@ export default async function VisualizationPage({
     );
   }
 
-  // [修正点] データを並行して取得 (データベースに合わせて英語名で検索)
+
   const [ratioHeatmapResult, rankResult] = await Promise.all([
     getRatioAndHeatmapData(wave, englishPrefecture),
     getRankData(wave, englishPrefecture),
@@ -50,6 +45,7 @@ export default async function VisualizationPage({
   const { ratioData, heatmapData, error: dataError } = ratioHeatmapResult;
   const { rankData, error: rankError } = rankResult;
 
+  // データ処理がうまくいかなかったときのエラー処理
   if (dataError || rankError || !ratioData || !heatmapData || !rankData) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -74,7 +70,7 @@ export default async function VisualizationPage({
   return (
     <VisualizationClient
       wave={wave}
-      prefecture={japanesePrefecture} // UI表示用には日本語名を渡す
+      prefecture={japanesePrefecture}
       ratioData={ratioData}
       heatmapData={heatmapData}
       rankData={rankData}

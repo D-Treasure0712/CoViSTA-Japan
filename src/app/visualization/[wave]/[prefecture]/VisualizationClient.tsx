@@ -1,17 +1,14 @@
 /**
  * @file src/app/visualization/[wave]/[prefecture]/VisualizationClient.tsx
  * @description
- * このファイルは、グラフ表示ページのクライアントコンポーネントです。
- * [修正点]
- * - 割合グラフのレイアウト設定(`layouts.ratio`)を変更しました。
- * - グラフのタイトルを「積み上げ面グラフ」に更新しました。
- * - 棒グラフ専用のプロパティである `barmode: 'stack'` を削除しました。
+ * グラフ表示ページのクライアントコンポーネント
  */
 'use client';
 
 import { useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { Data, Layout } from 'plotly.js';
+import colors from '@/theme/rateColor';
 
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 
@@ -28,6 +25,7 @@ const GRAPHS = [
   { id: 'heatmap', title: 'ヒートマップ' },
   { id: 'rank', title: '順位グラフ' },
 ];
+
 
 export default function VisualizationClient({
   wave,
@@ -47,31 +45,51 @@ export default function VisualizationClient({
     const isLast = currentIndex === GRAPHS.length - 1;
     setCurrentIndex(isLast ? 0 : currentIndex + 1);
   };
-  
+
+  const enhancedRatioData = useMemo(() => {
+    return ratioData.map((trace, index) => ({
+      ...trace,
+      fill: 'tonexty',
+      line: {
+        width: 0,
+        color: colors[index % colors.length]
+      },
+      fillcolor: colors[index % colors.length],
+      mode: 'none',
+      hoverinfo: 'name+y+x+text',
+      hovertemplate: `<b>${trace.name}</b><br>%{x}<br>占有率: %{y:.1%}<extra></extra>`,
+    }));
+  }, [ratioData]);
+
   const layouts = useMemo<Record<string, Partial<Layout>>>(() => ({
     ratio: {
-      title: `流行系統の割合 (積み上げ面グラフ)`, // タイトルを更新
-      // barmode: 'stack', // 棒グラフ専用のため削除
-      xaxis: { title: '週' },
-      yaxis: { title: '割合 (%)', range: [0, 100] },
+      title: { text: `流行系統の割合 (積み上げ面グラフ)` },
+      xaxis: { title: { text: '週' } },
+      yaxis: { title: { text: '割合 (%)' }, range: [0, 100] },
       legend: { orientation: 'h', y: -0.3, yanchor: 'top' },
     },
     heatmap: {
-      title: `流行系統の割合 (ヒートマップ)`,
-      xaxis: { title: '週' },
-      yaxis: { title: '系統', automargin: true },
+      title: { text: `流行系統の割合 (ヒートマップ)` },
+      xaxis: { title: { text: '週' } },
+      yaxis: { title: { text: '系統' }, automargin: true },
     },
     rank: {
-      title: `流行系統の順位推移 (上位10系統)`,
-      xaxis: { title: '週' },
-      yaxis: { title: '順位', autorange: 'reversed', dtick: 1, range: [20.5, 0.5] },
-      legend: { orientation: 'h', y: -0.3, yanchor: 'top' },
+      title: { text: `流行系統の順位推移 (上位10系統)` },
+      xaxis: { title: { text: '週' } },
+      yaxis: { title: { text: '順位' }, autorange: 'reversed', dtick: 1, range: [20.5, 0.5] },
+      legend: { 
+        orientation: 'h', 
+        y: -0.3, 
+        yanchor: 'top',
+        title: { text: '凡例クリックで表示/非表示' }
+      },
+      hovermode: 'closest'
     },
   }), []);
 
   const currentGraph = GRAPHS[currentIndex];
   const currentData = {
-    ratio: ratioData,
+    ratio: enhancedRatioData,
     heatmap: heatmapData,
     rank: rankData,
   }[currentGraph.id];

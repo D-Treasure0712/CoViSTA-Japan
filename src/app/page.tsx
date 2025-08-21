@@ -1,17 +1,13 @@
 /**
  * @file src/app/page.tsx
  * @description
- * このファイルは、アプリケーションのトップページ（ランディングページ）を定義します。
- * [修正点]
- * - `prefectureMapping.ts` から都道府県名の対応表をインポートします。
- * - 「グラフを表示」ボタンがクリックされると、選択された日本語の都道府県名を英語名に変換し、
- * /visualization/[wave]/[englishPrefectureName] の形式のURLを生成してページ遷移します。
+ * このファイルは、アプリケーションのトップページ（ランディングページ）を定義する
  */
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { prefectureMap } from '@/lib/prefectureMapping'; // 対応表をインポート
+import { prefectureMap } from '@/lib/prefectureMapping';
 
 // 都道府県リスト (prefectureMapのキーから生成)
 const prefectures = Object.keys(prefectureMap);
@@ -30,19 +26,26 @@ export default function Home() {
   const [selectedWave, setSelectedWave] = useState<string>(waves[3].value); // 初期値を第6-8波に設定
   const [isLoading, setIsLoading] = useState(false);
 
+  // 個別グラフ表示ボタンの処理
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedPrefecture && selectedWave) {
       setIsLoading(true);
-      // [修正点] 日本語名を英語名に変換
       const englishPrefecture = prefectureMap[selectedPrefecture];
       if (englishPrefecture) {
         router.push(`/visualization/${selectedWave}/${englishPrefecture}`);
       } else {
-        // 万が一、対応する英語名が見つからない場合
         alert("選択された都道府県の英語名が見つかりません。");
         setIsLoading(false);
       }
+    }
+  };
+
+  // 全国サマリー表示ボタンの処理
+  const handleSummaryClick = () => {
+    if (selectedWave) {
+      setIsLoading(true);
+      router.push(`/visualization/prefecture-summary/${selectedWave}`);
     }
   };
 
@@ -98,13 +101,21 @@ export default function Home() {
             </select>
           </div>
 
-          <div>
+          <div className="flex flex-col sm:flex-row gap-4 pt-2">
             <button
               type="submit"
               disabled={isLoading}
               className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed transition-colors duration-300"
             >
-              {isLoading ? '読み込み中...' : 'グラフを表示'}
+              {isLoading ? '読み込み中...' : '個別グラフを表示'}
+            </button>
+            <button
+              type="button"
+              onClick={handleSummaryClick}
+              disabled={isLoading}
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors duration-300"
+            >
+              {isLoading ? '読み込み中...' : '全国サマリーを表示'}
             </button>
           </div>
         </form>
