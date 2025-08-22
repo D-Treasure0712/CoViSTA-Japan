@@ -34,7 +34,7 @@ export interface Lineage {
  */
 export interface CovidDataWithRelations {
     id: number;
-    date: Date;
+    date: string;
     count: number;
     ratio: number;
     prefectureId: number;
@@ -42,6 +42,7 @@ export interface CovidDataWithRelations {
     wave: number;
     prefecture: Prefecture;
     lineage: Lineage;
+    rank: number | null;
 }
 
 /**
