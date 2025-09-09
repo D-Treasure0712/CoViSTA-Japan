@@ -1,4 +1,8 @@
 #!/bin/sh
+# このスクリプトは、Dockerコンテナの起動時に実行されるエントリーポイントです。
+# 主に、データベースのマイグレーションとアプリケーションの起動を行います。
+
+# エラーが発生した場合は、直ちにスクリプトを終了します。
 set -e
 
 echo "Starting docker entrypoint script..."
@@ -37,27 +41,45 @@ if [ $retry_count -eq $max_retries ]; then
   exit 1
 fi
 
-# 簡易的なデータインポートチェック
+# ---- ここから修正箇所 ----
+
+# データインポートが必要かどうかのチェック
+# nakano_srcディレクトリとインポートスクリプトが存在する場合のみ実行
 if [ -d "/app/nakano_src" ] && [ -f "/app/scripts/import-data.ts" ]; then
   echo "Checking if data import is needed..."
-  # データが存在するかどうかをシンプルなクエリで確認
-  # SQLiteのコマンドラインでチェック
+
+  # データベースファイルが存在することを確認
   if [ -f "/app/prisma/dev.db" ]; then
-    DATA_COUNT=$(sqlite3 /app/prisma/dev.db "SELECT count(*) FROM CovidData LIMIT 1;" 2>/dev/null || echo "0")
-    
-    if [ "$DATA_COUNT" = "0" ] || [ -z "$DATA_COUNT" ]; then
-      echo "Database is empty, importing data..."
+    # 最初にテーブルから行数を取得しようと試みる
+    DATA_COUNT=$(sqlite3 /app/prisma/dev.db "SELECT count(*) FROM CovidData;")
+
+    # sqlite3コマンドが失敗したか(終了コードが0以外)、結果が空文字だった場合は、
+    # テーブルが存在しないか空であるとみなし、カウントを0に設定する
+    if [ $? -ne 0 ] || [ -z "$DATA_COUNT" ]; then
+      DATA_COUNT=0
+    fi
+
+    # デバッグ用に取得したカウント数を表示
+    echo "Debug: Data count retrieved from database is '$DATA_COUNT'."
+
+    # カウント数が0の場合のみデータインポートを実行
+    if [ "$DATA_COUNT" -eq 0 ]; then
+      echo "Database appears to be empty. Importing data..."
       npm run import-data
     else
-      echo "Data already exists, skipping import"
+      echo "Data already exists (Count: $DATA_COUNT). Skipping import."
     fi
   else
-    echo "Database file does not exist yet, will be created during app startup"
+    # データベースファイル自体が存在しない場合は、インポートを実行
+    echo "Database file not found. Assuming first run and importing data..."
+    npm run import-data
   fi
 else
-  echo "Warning: nakano_src directory or import script not found, skipping data import"
+  echo "Warning: nakano_src directory or import script not found, skipping data import."
 fi
+
+# ---- ここまで修正箇所 ----
 
 # Start the main application
 echo "Starting application..."
-exec npm run dev 
+exec npm run dev

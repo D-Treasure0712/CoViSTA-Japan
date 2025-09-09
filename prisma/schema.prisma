@@ -28,7 +28,7 @@ model Lineage {
 
 model CovidData {
   id           Int        @id @default(autoincrement())
-  date         DateTime
+  date         String     // 年/週番号 (例: 2022/1)
   count        Int
   ratio        Float
   prefecture   Prefecture @relation(fields: [prefectureId], references: [id])
@@ -36,6 +36,7 @@ model CovidData {
   lineage      Lineage    @relation(fields: [lineageId], references: [id])
   lineageId    Int
   wave         Int
+  rank         Int?
 
   @@index([date])
   @@index([prefectureId])
