@@ -81,5 +81,5 @@ fi
 # ---- ここまで修正箇所 ----
 
 # Start the main application
-echo "Starting application..."
-exec npm run dev
+echo "Starting application... with command: $@"
+exec "$@"

@@ -9,6 +9,8 @@ import VisualizationClient from './VisualizationClient';
 import Link from 'next/link';
 import { prefectureReverseMap } from '@/lib/prefectureMapping';
 
+export const dynamic = 'force-dynamic';
+
 export default async function VisualizationPage({
   params,
 }: {

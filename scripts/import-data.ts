@@ -296,7 +296,7 @@ async function importData() {
               // 変換したデータをデータベースに保存
               await prisma.covidData.create({
                 data: {
-                  date: formattedDate,       // 年/週形式の日付文字列
+                  date: formattedDate.toISOString(),       // 年/週形式の日付文字列
                   count,      // カウント値（パーセント）
                   ratio,      // 割合（0-1の小数）
                   prefectureId, // 都道府県のID
