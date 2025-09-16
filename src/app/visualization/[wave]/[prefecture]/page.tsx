@@ -11,6 +11,8 @@ import { prefectureReverseMap } from '@/lib/prefectureMapping';
 import { createPrefectureNotFoundError } from '@/lib/validation';
 import ErrorDisplay from './components/ErrorDisplay';
 
+export const dynamic = 'force-dynamic';
+
 export default async function VisualizationPage({
   params,
 }: {

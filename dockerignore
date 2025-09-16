@@ -24,3 +24,6 @@ yarn-error.log*
 
 # README など (本番イメージに含めない場合)
 README.md
+
+prisma/dev.db
+prisma/dev.db-journal

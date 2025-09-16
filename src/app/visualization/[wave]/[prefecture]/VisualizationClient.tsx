@@ -58,7 +58,7 @@ export default function VisualizationClient({
       mode: 'none',
       hoverinfo: 'name+y+x+text',
       hovertemplate: `<b>${trace.name}</b><br>%{x}<br>占有率: %{y:.1%}<extra></extra>`,
-    }));
+    } as Data));
   }, [ratioData]);
 
   const layouts = useMemo<Record<string, Partial<Layout>>>(() => ({
@@ -110,7 +110,7 @@ export default function VisualizationClient({
         <main className="relative p-2 sm:p-4">
           <div className="w-full h-[65vh] min-h-[500px] transition-opacity duration-300 ease-in-out">
              <Plot
-                data={currentData}
+                data={currentData || []}
                 layout={{
                   ...currentLayout,
                   autosize: true,

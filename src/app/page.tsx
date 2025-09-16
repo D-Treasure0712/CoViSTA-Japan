@@ -9,6 +9,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { prefectureMap } from '@/lib/prefectureMapping';
 
+export const dynamic = 'force-dynamic';
+
 // 都道府県リスト (prefectureMapのキーから生成)
 const prefectures = Object.keys(prefectureMap);
 

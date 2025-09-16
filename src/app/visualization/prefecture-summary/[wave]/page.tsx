@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import PrefectureSummaryComponent from '../components/PrefectureSummaryComponent';
 
+export const dynamic = 'force-dynamic'
+
 // 都道府県のインターフェース
 interface Prefecture {
   id: number;
@@ -27,8 +29,26 @@ interface CovidDataWithRelations {
   lineage: Lineage;
 }
 
+interface CovidDataWithYearWeek extends CovidDataWithRelations {
+	yearWeek: string;
+}
+
+interface PreparedData {
+  prefectures: string[];
+  weeks: string[];
+  lineages: string[];
+  summaryData: {
+    prefecture: string;
+    dominantLineages: {
+      week: string;
+      lineage: string | null;
+      ratio: number;
+    }[];
+  }[];
+}
+
 // データを取得する関数
-async function getData(wave: string) {
+async function getData(wave: string): Promise<CovidDataWithRelations[]> {
   try {
     const waveNumber = wave === '6-8' ? [6, 7, 8] : [parseInt(wave)];
     
@@ -178,7 +198,7 @@ function getYearWeek(dateInput: Date | string): string {
 }
 
 // 都道府県別の週ごとの主要系統データを生成する関数
-async function preparePrefectureSummaryData(wave: string) {
+async function preparePrefectureSummaryData(wave: string): Promise<PreparedData> {
   const data = await getData(wave);
   
   if (data.length === 0) {
@@ -187,10 +207,10 @@ async function preparePrefectureSummaryData(wave: string) {
   }
   
   // 都道府県のリストを取得（重複なし）
-  const prefectures = Array.from(new Set(data.map(d => d.prefecture.name))).sort();
+  const prefectures: string[] = Array.from(new Set(data.map((d: CovidDataWithRelations) => d.prefecture.name))).sort();
   
   // データベースのdate列は既に年/週形式のため、そのまま使用
-  const weekData = data.map(d => {
+  const weekData: CovidDataWithYearWeek[] = data.map((d: CovidDataWithRelations) => {
     // date列から年/週形式を取得、必要に応じて変換
     const yearWeek = getYearWeek(d.date);
     return {
@@ -200,7 +220,7 @@ async function preparePrefectureSummaryData(wave: string) {
   });
   
   // 週のリストを取得（重複なし、ソート）
-  const weeks = Array.from(new Set(weekData.map(d => d.yearWeek)))
+  const weeks = Array.from(new Set(weekData.map((d: CovidDataWithYearWeek) => d.yearWeek)))
     .sort((a, b) => {
       const [yearA, weekA] = a.split('/').map(Number);
       const [yearB, weekB] = b.split('/').map(Number);
@@ -208,18 +228,18 @@ async function preparePrefectureSummaryData(wave: string) {
     });
   
   // すべての系統リスト（重複なし）
-  const allLineages = Array.from(new Set(data.map(d => d.lineage.name))).sort();
+  const allLineages = Array.from(new Set(data.map((d: CovidDataWithRelations) => d.lineage.name))).sort();
   
   // 都道府県×週の行列を生成
   const summaryData = [];
   
   for (const prefecture of prefectures) {
-    const prefectureData = weekData.filter(d => d.prefecture.name === prefecture);
+    const prefectureData = weekData.filter((d: CovidDataWithRelations) => d.prefecture.name === prefecture);
     const weeklyDominantLineages = [];
     
     for (const week of weeks) {
       // その週のデータだけを取得
-      const weekFilteredData = prefectureData.filter(d => d.yearWeek === week);
+      const weekFilteredData = prefectureData.filter((d: CovidDataWithYearWeek) => d.yearWeek === week);
       
       if (weekFilteredData.length === 0) {
         // データがない場合は空データ
