@@ -1,0 +1,41 @@
+name: PR Template Issue Linker
+
+# このワークフローが実行されるタイミングを指定
+on:
+  pull_request:
+    types: [opened] # プルリクエストが作成された時のみ実行
+
+jobs:
+  link-issue:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # プルリクエストを書き換える権限を付与
+
+    steps:
+      # ステップ1: ブランチ名からIssue番号を抽出する
+      - name: Extract issue number from branch name
+        id: extract_issue
+        run: |
+          # ブランチ名（例: 123-feature-branch）から先頭の数字を抽出
+          BRANCH_NAME="${{ github.head_ref }}"
+          ISSUE_NUMBER=$(echo "$BRANCH_NAME" | grep -o -E '^[0-9]+')
+          
+          # 抽出した数字を後続のステップで使えるように出力変数にセット
+          echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
+
+      # ステップ2: 抽出した番号を使ってPRの本文を更新する
+      - name: Update PR body with issue number
+        if: steps.extract_issue.outputs.issue_number # Issue番号が抽出できた場合のみ実行
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # GitHubが自動で提供するトークン
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          ISSUE_NUMBER: ${{ steps.extract_issue.outputs.issue_number }}
+        run: |
+          # 現在のPRの本文を取得
+          BODY=$(gh pr view "$PR_URL" --json body -q .body)
+          
+          # プレースホルダーを「#<Issue番号>」に置換
+          NEW_BODY=$(echo "$BODY" | sed "s/#ISSUE_NUMBER_PLACEHOLDER/#$ISSUE_NUMBER/g")
+          
+          # PRの本文を更新
+          gh pr edit "$PR_URL" --body "$NEW_BODY"

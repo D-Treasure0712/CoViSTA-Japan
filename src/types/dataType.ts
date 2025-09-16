@@ -109,3 +109,9 @@ export interface HeatmapClientProps {
   dates: string[];
   lineages: string[];
 }
+
+export interface ErrorDisplayProps {
+  title: string;
+  message: string;
+  error?: string;
+}
