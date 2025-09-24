@@ -26,7 +26,7 @@ max_retries=3
 retry_count=0
 
 while [ $retry_count -lt $max_retries ]; do
-  if npx prisma db push --accept-data-loss; then
+  if npx prisma db push; then
     echo "Prisma schema push successful"
     break
   else
