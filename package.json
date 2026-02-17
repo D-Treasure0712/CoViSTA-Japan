@@ -21,7 +21,7 @@
   "dependencies": {
     "@prisma/client": "^5.10.2",
     "geist": "^1.4.2",
-    "next": "13.4.19",
+    "next": "16.1.6",
     "plotly.js-dist-min": "^2.29.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
